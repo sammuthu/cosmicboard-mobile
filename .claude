@@ -1,0 +1,36 @@
+# CosmicBoard Mobile App
+
+This is the React Native mobile version of CosmicBoard.
+
+## Related Projects
+- **Web Version**: ~/Projects/cosmicboard
+  - Next.js web application with MongoDB backend
+  - Shares data models and business logic
+  - Mobile app uses local storage with same JSON structure as MongoDB
+
+## Important Notes
+- When making changes to data models or core features, consider updating both web and mobile versions
+- The mobile app uses AsyncStorage for local data persistence
+- Premium features include web sync via in-app purchase
+- Maintain feature parity where possible between platforms
+
+## Tech Stack
+- React Native with Expo
+- TypeScript
+- AsyncStorage for local storage
+- React Navigation
+- Revenue Cat for IAP (planned)
+
+## Data Models
+The mobile app uses the same data structure as the web version:
+- Projects
+- Tasks (with SUPERNOVA, STELLAR, NEBULA priorities)
+- References (snippets and documentation)
+- Tags system
+
+## Development
+```bash
+npm run ios      # Run on iOS simulator
+npm run android  # Run on Android emulator
+npm start        # Start Expo development server
+```
