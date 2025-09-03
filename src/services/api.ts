@@ -3,7 +3,7 @@ import * as Keychain from 'react-native-keychain';
 
 // Use the same backend as your web app
 const API_URL = __DEV__ 
-  ? 'http://localhost:7777/api'  // For development
+  ? 'http://localhost:7778/api'  // For development - Express backend port
   : 'https://cosmic.board/api';  // For production
 
 class ApiService {
