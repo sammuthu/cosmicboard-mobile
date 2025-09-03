@@ -1,29 +1,43 @@
 {
   "expo": {
-    "name": "cosmicboard-mobile",
+    "name": "CosmicBoard",
     "slug": "cosmicboard-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0a0f1b"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sammuthu.cosmicboard",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app may use the camera for future features",
+        "NSPhotoLibraryUsageDescription": "This app may access photos for future features"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0a0f1b"
       },
+      "package": "com.sammuthu.cosmicboard",
+      "versionCode": 1,
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
     }
   }
 }

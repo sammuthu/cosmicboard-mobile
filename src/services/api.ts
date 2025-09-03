@@ -1,0 +1,283 @@
+import axios from 'axios';
+import * as Keychain from 'react-native-keychain';
+
+// Use the same backend as your web app
+const API_URL = __DEV__ 
+  ? 'http://localhost:7777/api'  // For development
+  : 'https://cosmic.board/api';  // For production
+
+class ApiService {
+  private token: string | null = null;
+  private refreshToken: string | null = null;
+
+  async init() {
+    try {
+      const credentials = await Keychain.getInternetCredentials('cosmicboard');
+      if (credentials) {
+        this.token = credentials.password;
+        const userData = JSON.parse(credentials.username); // Store user data as username
+        this.refreshToken = userData.refreshToken;
+        
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+      }
+    } catch (error) {
+      console.error('Failed to load credentials:', error);
+    }
+  }
+
+  async login(email: string, password: string) {
+    try {
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password,
+      });
+      
+      const { token, refreshToken, user } = response.data;
+      
+      this.token = token;
+      this.refreshToken = refreshToken;
+      
+      // Store credentials securely
+      await Keychain.setInternetCredentials(
+        'cosmicboard',
+        JSON.stringify({ email, refreshToken }),
+        token
+      );
+      
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      return { user, token };
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Login failed');
+    }
+  }
+
+  async register(email: string, password: string, name: string) {
+    try {
+      const response = await axios.post(`${API_URL}/auth/register`, {
+        email,
+        password,
+        name,
+      });
+      
+      // Auto-login after registration
+      return this.login(email, password);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
+    }
+  }
+
+  async logout() {
+    try {
+      // Call logout endpoint if your backend has one
+      await axios.post(`${API_URL}/auth/logout`);
+    } catch (error) {
+      // Continue with local logout even if API call fails
+    }
+    
+    this.token = null;
+    this.refreshToken = null;
+    await Keychain.resetInternetCredentials('cosmicboard');
+    delete axios.defaults.headers.common['Authorization'];
+  }
+
+  async refreshAuthToken() {
+    if (!this.refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/auth/refresh`, {
+        refreshToken: this.refreshToken,
+      });
+      
+      const { token } = response.data;
+      this.token = token;
+      
+      // Update stored token
+      const credentials = await Keychain.getInternetCredentials('cosmicboard');
+      if (credentials) {
+        await Keychain.setInternetCredentials(
+          'cosmicboard',
+          credentials.username,
+          token
+        );
+      }
+      
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      return token;
+    } catch (error) {
+      // Refresh failed, need to re-login
+      await this.logout();
+      throw new Error('Session expired. Please login again.');
+    }
+  }
+
+  // Projects
+  async getProjects() {
+    const response = await axios.get(`${API_URL}/projects`);
+    return response.data;
+  }
+
+  async getProject(id: string) {
+    const response = await axios.get(`${API_URL}/projects/${id}`);
+    return response.data;
+  }
+
+  async createProject(data: {
+    name: string;
+    description?: string;
+  }) {
+    const response = await axios.post(`${API_URL}/projects`, data);
+    return response.data;
+  }
+
+  async updateProject(id: string, data: Partial<{
+    name: string;
+    description: string;
+  }>) {
+    const response = await axios.put(`${API_URL}/projects/${id}`, data);
+    return response.data;
+  }
+
+  async deleteProject(id: string) {
+    await axios.delete(`${API_URL}/projects/${id}`);
+  }
+
+  // Tasks
+  async getTasks(projectId: string) {
+    const response = await axios.get(`${API_URL}/projects/${projectId}/tasks`);
+    return response.data;
+  }
+
+  async getTask(projectId: string, taskId: string) {
+    const response = await axios.get(`${API_URL}/projects/${projectId}/tasks/${taskId}`);
+    return response.data;
+  }
+
+  async createTask(projectId: string, data: {
+    title: string;
+    content: string;
+    priority: 'SUPERNOVA' | 'STELLAR' | 'NEBULA';
+    status?: 'ACTIVE' | 'COMPLETED' | 'DELETED';
+    tags?: string[];
+    dueDate?: string;
+  }) {
+    const response = await axios.post(`${API_URL}/projects/${projectId}/tasks`, data);
+    return response.data;
+  }
+
+  async updateTask(projectId: string, taskId: string, data: any) {
+    const response = await axios.put(`${API_URL}/projects/${projectId}/tasks/${taskId}`, data);
+    return response.data;
+  }
+
+  async deleteTask(projectId: string, taskId: string) {
+    await axios.delete(`${API_URL}/projects/${projectId}/tasks/${taskId}`);
+  }
+
+  // References
+  async getReferences(projectId: string) {
+    const response = await axios.get(`${API_URL}/projects/${projectId}/references`);
+    return response.data;
+  }
+
+  async getReference(projectId: string, referenceId: string) {
+    const response = await axios.get(`${API_URL}/projects/${projectId}/references/${referenceId}`);
+    return response.data;
+  }
+
+  async createReference(projectId: string, data: {
+    title: string;
+    content: string;
+    category: 'snippet' | 'documentation';
+    tags?: string[];
+    language?: string;
+  }) {
+    const response = await axios.post(`${API_URL}/projects/${projectId}/references`, data);
+    return response.data;
+  }
+
+  async updateReference(projectId: string, referenceId: string, data: any) {
+    const response = await axios.put(`${API_URL}/projects/${projectId}/references/${referenceId}`, data);
+    return response.data;
+  }
+
+  async deleteReference(projectId: string, referenceId: string) {
+    await axios.delete(`${API_URL}/projects/${projectId}/references/${referenceId}`);
+  }
+
+  // User Profile & Subscription
+  async getProfile() {
+    const response = await axios.get(`${API_URL}/user/profile`);
+    return response.data;
+  }
+
+  async updateProfile(data: {
+    name?: string;
+    email?: string;
+  }) {
+    const response = await axios.put(`${API_URL}/user/profile`, data);
+    return response.data;
+  }
+
+  async getSubscriptionStatus() {
+    const response = await axios.get(`${API_URL}/user/subscription`);
+    return response.data;
+  }
+
+  async createCheckoutSession(planId: string) {
+    const response = await axios.post(`${API_URL}/payments/create-checkout-session`, {
+      planId,
+    });
+    return response.data;
+  }
+
+  async cancelSubscription() {
+    const response = await axios.post(`${API_URL}/payments/cancel-subscription`);
+    return response.data;
+  }
+
+  // Search
+  async searchAll(query: string) {
+    const response = await axios.get(`${API_URL}/search`, {
+      params: { q: query }
+    });
+    return response.data;
+  }
+
+  async searchTasks(projectId: string, query: string) {
+    const response = await axios.get(`${API_URL}/projects/${projectId}/tasks/search`, {
+      params: { q: query }
+    });
+    return response.data;
+  }
+}
+
+// Create singleton instance
+const apiService = new ApiService();
+
+// Setup interceptors for token refresh
+axios.interceptors.response.use(
+  response => response,
+  async error => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        await apiService.refreshAuthToken();
+        return axios(originalRequest);
+      } catch (refreshError) {
+        // Redirect to login
+        // This will be handled by the navigation in the app
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+export default apiService;
