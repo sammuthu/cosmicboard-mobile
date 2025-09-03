@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   RefreshControl,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Plus } from 'lucide-react-native';
 import { colors } from '../styles/colors';
 import PrismCard from '../components/PrismCard';
-import StorageService from '../services/storage';
+import apiService from '../services/api';
 import { Project, Task, Reference } from '../models';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
@@ -38,34 +39,42 @@ export default function ProjectsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [projects, setProjects] = useState<ProjectWithCounts[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const loadProjects = async () => {
-    const projectList = await StorageService.getProjects();
-    const tasks = await StorageService.getTasks();
-    const references = await StorageService.getReferences();
-
-    const projectsWithCounts = projectList.map(project => {
-      const projectTasks = tasks.filter(t => t.projectId === project._id);
-      const projectReferences = references.filter(r => r.projectId === project._id);
-
-      return {
+    try {
+      // Initialize API service
+      await apiService.init();
+      
+      // Fetch projects from API
+      const projectList = await apiService.getProjects();
+      
+      // Use the counts from the API response
+      const projectsWithCounts = projectList.map((project: any) => ({
         ...project,
-        counts: {
+        _id: project.id || project._id, // Handle both id formats
+        counts: project.counts || {
           tasks: {
-            active: projectTasks.filter(t => t.status === 'ACTIVE').length,
-            completed: projectTasks.filter(t => t.status === 'COMPLETED').length,
-            deleted: projectTasks.filter(t => t.status === 'DELETED').length,
+            active: 0,
+            completed: 0,
+            deleted: 0,
           },
           references: {
-            total: projectReferences.length,
-            snippets: projectReferences.filter(r => r.category === 'snippet').length,
-            documentation: projectReferences.filter(r => r.category === 'documentation').length,
+            total: 0,
+            snippets: 0,
+            documentation: 0,
           },
         },
-      };
-    });
+      }));
 
-    setProjects(projectsWithCounts);
+      setProjects(projectsWithCounts);
+    } catch (error) {
+      console.error('Failed to load projects:', error);
+      // For development, show empty state if API fails
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -84,8 +93,13 @@ export default function ProjectsScreen() {
       'Enter project name:',
       async (name) => {
         if (name && name.trim()) {
-          await StorageService.createProject(name.trim());
-          loadProjects();
+          try {
+            await apiService.createProject({ name: name.trim() });
+            loadProjects();
+          } catch (error) {
+            console.error('Failed to create project:', error);
+            Alert.alert('Error', 'Failed to create project');
+          }
         }
       },
       'plain-text'
@@ -171,12 +185,23 @@ export default function ProjectsScreen() {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={colors.cosmic.purple} />
+        <Text style={styles.loadingText}>Loading projects...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
         data={projects}
         keyExtractor={(item) => item._id}
         renderItem={renderProject}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={true}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -206,6 +231,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
+  },
+  listContent: {
+    paddingBottom: 100, // Add space for FAB and ensure scrolling
   },
   projectName: {
     fontSize: 20,
@@ -307,5 +335,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: colors.text.secondary,
   },
 });

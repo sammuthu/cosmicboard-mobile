@@ -17,7 +17,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   ProjectDetail: { projectId: string };
   TaskDetail: { taskId: string; projectId: string };
-  ReferenceDetail: { referenceId: string; projectId: string };
+  ReferenceDetail: { reference: any };
 };
 
 export type MainTabParamList = {

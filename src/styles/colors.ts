@@ -1,10 +1,20 @@
 export const colors = {
+  // Primary color for backward compatibility
+  primary: '#8b5cf6',
+  
   // Background colors
   background: {
     primary: '#0a0a0f',
     secondary: '#1a1a2e',
+    tertiary: '#2a2a3e',
     card: '#16213e',
     elevated: '#1e2841',
+  },
+  
+  // Border colors
+  border: {
+    primary: '#374151',
+    secondary: '#1f2937',
   },
   
   // Text colors

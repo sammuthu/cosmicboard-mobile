@@ -95,13 +95,22 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
 fi
 
-# Step 4: Kill any existing Metro bundler
+# Step 4: Kill any existing Metro bundler and Expo processes
+print_status "Cleaning up any existing Metro/Expo processes..."
+pkill -f "expo start" 2>/dev/null || true
+pkill -f "react-native" 2>/dev/null || true
+pkill -f "metro" 2>/dev/null || true
 if lsof -Pi :${METRO_PORT} -sTCP:LISTEN -t >/dev/null ; then
     print_status "Stopping existing Metro bundler on port ${METRO_PORT}..."
     lsof -ti:${METRO_PORT} | xargs kill -9 2>/dev/null || true
-    sleep 1
-    print_success "Previous Metro bundler stopped"
+    sleep 2
 fi
+if lsof -Pi :8082 -sTCP:LISTEN -t >/dev/null ; then
+    print_status "Stopping existing web server on port 8082..."
+    lsof -ti:8082 | xargs kill -9 2>/dev/null || true
+    sleep 1
+fi
+print_success "Cleanup complete"
 
 # Step 5: Service Status
 echo ""
@@ -147,18 +156,127 @@ echo -e "${BLUE}npm run android${NC}   - Run on Android Emulator"
 echo -e "${BLUE}npm start${NC}         - Start Metro Bundler only"
 echo ""
 
-# Step 6: Start based on platform preference
+# Step 6: Launch web browser and iOS simulator
+launch_development() {
+    print_status "Launching development environment..."
+    
+    # First, start Metro bundler for iOS/Android (MUST be on 8081)
+    print_status "Starting Metro bundler on port 8081 (clearing cache)..."
+    npx expo start --clear --port 8081 > /tmp/metro.log 2>&1 &
+    METRO_PID=$!
+    
+    # Wait for Metro to be fully ready
+    print_status "Waiting for Metro bundler to start..."
+    for i in {1..20}; do
+        if curl -s http://localhost:8081/status > /dev/null 2>&1; then
+            print_success "Metro bundler is ready on port 8081!"
+            break
+        fi
+        if [ $i -eq 20 ]; then
+            print_error "Metro bundler failed to start. Check /tmp/metro.log for details"
+            tail -20 /tmp/metro.log
+            exit 1
+        fi
+        sleep 1
+    done
+    
+    # Then start web version on port 8082
+    print_status "Starting web server on port 8082..."
+    npx expo start --web --port 8082 > /tmp/web.log 2>&1 &
+    WEB_PID=$!
+    
+    # Give web server time to start
+    sleep 3
+    
+    # Verify Metro is accessible
+    print_status "Verifying Metro bundler accessibility..."
+    if curl -s http://localhost:8081 > /dev/null 2>&1; then
+        print_success "Metro bundler is accessible at http://localhost:8081"
+    else
+        print_error "Metro bundler is not accessible!"
+        print_status "Attempting to restart Metro..."
+        kill $METRO_PID 2>/dev/null || true
+        npx expo start --clear --port 8081 > /tmp/metro.log 2>&1 &
+        METRO_PID=$!
+        sleep 5
+    fi
+    
+    # Open web browser
+    if lsof -Pi :8082 -sTCP:LISTEN -t >/dev/null ; then
+        print_success "Opening web browser at http://localhost:8082"
+        open http://localhost:8082
+    fi
+    
+    # Open iOS Simulator
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        print_status "Opening iOS Simulator..."
+        
+        # Open Simulator app if not already running
+        if ! pgrep -x "Simulator" > /dev/null; then
+            open -a Simulator
+            sleep 3
+        fi
+        
+        # Select appropriate simulator
+        if xcrun simctl list devices | grep -q "iPhone 16 Plus"; then
+            DEVICE_NAME="iPhone 16 Plus"
+        elif xcrun simctl list devices | grep -q "iPhone 16 Pro Max"; then
+            DEVICE_NAME="iPhone 16 Pro Max"
+        elif xcrun simctl list devices | grep -q "iPhone 15 Pro Max"; then
+            DEVICE_NAME="iPhone 15 Pro Max"
+        else
+            DEVICE_NAME="iPhone 14 Pro Max"
+        fi
+        
+        print_success "Using simulator: $DEVICE_NAME"
+        
+        # Make sure Metro is still running before launching app
+        if ! curl -s http://localhost:8081/status > /dev/null 2>&1; then
+            print_warning "Metro bundler stopped. Restarting..."
+            npx expo start --clear --port 8081 > /tmp/metro.log 2>&1 &
+            METRO_PID=$!
+            sleep 5
+        fi
+        
+        # Open Expo Go or build native app
+        print_status "Launching iOS app..."
+        
+        # Use Expo CLI to open on iOS simulator (will use the Metro bundler on 8081)
+        npx expo run:ios --port 8081
+    fi
+}
+
+# Step 7: Start based on platform preference
 if [ "$1" = "ios" ] || [ "$2" = "ios" ]; then
-    print_status "Starting iOS app..."
+    print_status "Starting iOS app only..."
     npm run ios
 elif [ "$1" = "android" ] || [ "$2" = "android" ]; then
-    print_status "Starting Android app..."
+    print_status "Starting Android app only..."
     npm run android
+elif [ "$1" = "web" ] || [ "$2" = "web" ]; then
+    print_status "Starting web version only..."
+    npx expo start --web --port 8082
 else
-    print_status "Starting Metro Bundler..."
-    print_status "Run 'npm run ios' or 'npm run android' in another terminal to launch the app"
-    echo ""
-    print_status "Press Ctrl+C to stop the bundler"
-    echo ""
-    npm start
+    # Default: Launch both web and iOS
+    launch_development
 fi
+
+# Cleanup function
+cleanup() {
+    print_warning "Shutting down services..."
+    if [ ! -z "$WEB_PID" ]; then
+        kill $WEB_PID 2>/dev/null || true
+    fi
+    if [ ! -z "$METRO_PID" ]; then
+        kill $METRO_PID 2>/dev/null || true
+    fi
+    pkill -f "expo start" 2>/dev/null || true
+    pkill -f "metro" 2>/dev/null || true
+    lsof -ti:8082 | xargs kill -9 2>/dev/null || true
+    lsof -ti:8081 | xargs kill -9 2>/dev/null || true
+    print_success "Cleanup complete"
+    exit 0
+}
+
+# Set up cleanup on exit
+trap cleanup EXIT INT TERM
