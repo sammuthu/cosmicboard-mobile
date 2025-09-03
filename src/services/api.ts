@@ -1,9 +1,13 @@
 import axios from 'axios';
 import * as Keychain from 'react-native-keychain';
+import { Platform } from 'react-native';
 
 // Use the same backend as your web app
+// For Android emulator, use 10.0.2.2 to access host machine's localhost
 const API_URL = __DEV__ 
-  ? 'http://localhost:7778/api'  // For development - Express backend port
+  ? Platform.OS === 'android' 
+    ? 'http://10.0.2.2:7778/api'  // Android emulator special IP for host localhost
+    : 'http://localhost:7778/api'  // iOS simulator or web
   : 'https://cosmic.board/api';  // For production
 
 class ApiService {
