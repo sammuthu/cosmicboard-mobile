@@ -6,7 +6,11 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "dev": "./scripts/start-with-backend.sh",
+    "dev:android": "./scripts/start-with-backend.sh android",
+    "dev:ios": "./scripts/start-with-backend.sh ios",
+    "dev:web": "./scripts/start-with-backend.sh web"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",

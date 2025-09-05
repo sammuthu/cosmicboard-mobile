@@ -74,6 +74,7 @@ export default function ProjectDetailScreen() {
   const loadProjectData = async () => {
     try {
       // Load project details
+      console.log('Loading project with ID:', projectId);
       const projectData = await apiService.getProject(projectId);
       setProject(projectData);
       
@@ -86,8 +87,25 @@ export default function ProjectDetailScreen() {
       const referencesData = await apiService.getReferences(projectId);
       console.log('Loaded references:', referencesData);
       setReferences(Array.isArray(referencesData) ? referencesData : []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load project data:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        config: error.config?.url
+      });
+      
+      // Show user-friendly error message
+      Alert.alert(
+        'Connection Error',
+        'Unable to load project data. Please ensure:\n\n' +
+        '1. Your backend server is running on port 7778\n' +
+        '2. You\'re logged in to the app\n\n' +
+        'Error: ' + (error.message || 'Network error'),
+        [{ text: 'OK' }]
+      );
+      
       // For now, use empty data if API fails
       setTasks([]);
       setReferences([]);
