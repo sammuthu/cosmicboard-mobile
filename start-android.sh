@@ -16,8 +16,9 @@ NC='\033[0m' # No Color
 APP_NAME="CosmicBoard Mobile"
 BACKEND_PORT=7778
 METRO_PORT=8081
-ANDROID_HOME="${ANDROID_HOME:-/opt/homebrew/share/android-commandlinetools}"
+ANDROID_HOME="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 EMULATOR_NAME="Pixel_8_Pro_API_34"
+PROJECT_DIR="$(dirname "$0")"
 
 # Function to print colored output
 print_status() {
@@ -42,32 +43,23 @@ print_status "Starting ${APP_NAME} for Android..."
 check_android_sdk() {
     print_status "Checking Android SDK installation..."
     
+    # Try common Android SDK locations
     if [ ! -d "$ANDROID_HOME" ]; then
-        print_error "Android SDK not found at $ANDROID_HOME"
-        print_status "Installing Android SDK via Homebrew..."
-        
-        # Check if Homebrew is installed
-        if ! command -v brew &> /dev/null; then
-            print_error "Homebrew not installed. Please install from https://brew.sh"
+        if [ -d "$HOME/Library/Android/sdk" ]; then
+            export ANDROID_HOME="$HOME/Library/Android/sdk"
+        elif [ -d "/opt/homebrew/share/android-commandlinetools" ]; then
+            export ANDROID_HOME="/opt/homebrew/share/android-commandlinetools"
+        else
+            print_error "Android SDK not found"
+            print_status "Please install Android Studio or run: brew install --cask android-commandlinetools"
             exit 1
         fi
-        
-        # Install Android command line tools
-        brew install --cask android-commandlinetools
-        
-        # Set up ANDROID_HOME
-        export ANDROID_HOME="$HOME/Library/Android/sdk"
-        echo 'export ANDROID_HOME="$HOME/Library/Android/sdk"' >> ~/.zshrc
-        echo 'export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"' >> ~/.zshrc
-        source ~/.zshrc
-        
-        print_success "Android SDK installed"
-    else
-        print_success "Android SDK found at $ANDROID_HOME"
     fi
     
+    print_success "Android SDK found at $ANDROID_HOME"
+    
     # Ensure paths are set
-    export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+    export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$PATH"
 }
 
 # Step 2: Install Android SDK components
@@ -81,12 +73,22 @@ install_sdk_components() {
         # Accept licenses
         yes | sdkmanager --licenses > /dev/null 2>&1 || true
         
+        # Determine system architecture for emulator image
+        ARCH=$(uname -m)
+        if [ "$ARCH" = "arm64" ]; then
+            # For Apple Silicon Macs
+            SYSTEM_IMAGE="system-images;android-34;google_apis;arm64-v8a"
+        else
+            # For Intel Macs
+            SYSTEM_IMAGE="system-images;android-34;google_apis;x86_64"
+        fi
+        
         # Install required SDK components
-        sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "system-images;android-34;google_apis;x86_64" "emulator" > /dev/null 2>&1
+        sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "$SYSTEM_IMAGE" "emulator" > /dev/null 2>&1 || true
         
         print_success "Android SDK components installed"
     else
-        print_error "sdkmanager not found. Please check Android SDK installation"
+        print_warning "sdkmanager not found. Skipping SDK component installation"
     fi
 }
 
@@ -94,18 +96,34 @@ install_sdk_components() {
 create_emulator() {
     print_status "Checking for Android emulator..."
     
+    # Check if emulator command exists
+    if [ ! -f "$ANDROID_HOME/emulator/emulator" ]; then
+        print_warning "Emulator not found. Please install via Android Studio"
+        return
+    fi
+    
     # Check if emulator exists
-    if ! $ANDROID_HOME/emulator/emulator -list-avds | grep -q "$EMULATOR_NAME"; then
+    if ! $ANDROID_HOME/emulator/emulator -list-avds 2>/dev/null | grep -q "$EMULATOR_NAME"; then
         print_status "Creating Android emulator: $EMULATOR_NAME"
         
-        # Create AVD
-        echo "no" | $ANDROID_HOME/cmdline-tools/latest/bin/avdmanager create avd \
-            -n "$EMULATOR_NAME" \
-            -k "system-images;android-34;google_apis;x86_64" \
-            -d "pixel_8_pro" \
-            --force > /dev/null 2>&1
+        # Determine system architecture
+        ARCH=$(uname -m)
+        if [ "$ARCH" = "arm64" ]; then
+            SYSTEM_IMAGE="system-images;android-34;google_apis;arm64-v8a"
+        else
+            SYSTEM_IMAGE="system-images;android-34;google_apis;x86_64"
+        fi
         
-        print_success "Emulator created: $EMULATOR_NAME"
+        # Try to create AVD
+        if command -v avdmanager &> /dev/null; then
+            echo "no" | avdmanager create avd \
+                -n "$EMULATOR_NAME" \
+                -k "$SYSTEM_IMAGE" \
+                -d "pixel_8_pro" \
+                --force > /dev/null 2>&1 || print_warning "Could not create emulator. Please create manually in Android Studio"
+        else
+            print_warning "avdmanager not found. Please create emulator manually in Android Studio"
+        fi
     else
         print_success "Emulator already exists: $EMULATOR_NAME"
     fi
@@ -115,37 +133,46 @@ create_emulator() {
 start_emulator() {
     print_status "Checking if Android emulator is running..."
     
+    if ! command -v adb &> /dev/null; then
+        print_warning "adb not found. Skipping emulator check"
+        return
+    fi
+    
     if adb devices 2>/dev/null | grep -q "emulator"; then
         print_success "Android emulator is already running"
     else
-        print_status "Starting Android emulator..."
-        
-        # Start emulator in background
-        nohup $ANDROID_HOME/emulator/emulator -avd "$EMULATOR_NAME" -no-snapshot-load > /tmp/emulator.log 2>&1 &
-        EMULATOR_PID=$!
-        
-        print_status "Waiting for emulator to boot (this may take a few minutes)..."
-        
-        # Wait for emulator to be ready
-        for i in {1..60}; do
-            if adb devices 2>/dev/null | grep -q "emulator.*device$"; then
-                # Additional check for boot completion
-                if adb shell getprop sys.boot_completed 2>/dev/null | grep -q "1"; then
-                    print_success "Android emulator is ready!"
+        # Check if we have an emulator to start
+        if [ -f "$ANDROID_HOME/emulator/emulator" ] && $ANDROID_HOME/emulator/emulator -list-avds 2>/dev/null | grep -q "$EMULATOR_NAME"; then
+            print_status "Starting Android emulator..."
+            
+            # Start emulator in background
+            nohup $ANDROID_HOME/emulator/emulator -avd "$EMULATOR_NAME" -no-snapshot-load > /tmp/emulator.log 2>&1 &
+            EMULATOR_PID=$!
+            
+            print_status "Waiting for emulator to boot (this may take a few minutes)..."
+            
+            # Wait for emulator to be ready
+            for i in {1..90}; do
+                if adb devices 2>/dev/null | grep -q "emulator.*device$"; then
+                    # Additional check for boot completion
+                    if adb shell getprop sys.boot_completed 2>/dev/null | grep -q "1"; then
+                        print_success "Android emulator is ready!"
+                        break
+                    fi
+                fi
+                
+                if [ $i -eq 90 ]; then
+                    print_warning "Emulator may not be fully ready. You can check /tmp/emulator.log for details"
                     break
                 fi
-            fi
-            
-            if [ $i -eq 60 ]; then
-                print_error "Emulator failed to start after 60 seconds"
-                print_status "Check /tmp/emulator.log for errors"
-                exit 1
-            fi
-            
-            echo -n "."
-            sleep 2
-        done
-        echo ""
+                
+                echo -n "."
+                sleep 2
+            done
+            echo ""
+        else
+            print_warning "No emulator found. Please start one from Android Studio"
+        fi
     fi
 }
 
@@ -189,7 +216,7 @@ check_backend() {
     fi
 }
 
-# Step 6: Install app dependencies
+# Step 6: Install app dependencies and check API configuration
 install_dependencies() {
     if [ ! -d "node_modules" ]; then
         print_status "Installing dependencies..."
@@ -197,6 +224,19 @@ install_dependencies() {
         print_success "Dependencies installed"
     else
         print_success "Dependencies already installed"
+    fi
+    
+    # Check if API is configured correctly for Android
+    print_status "Verifying Android API configuration..."
+    if grep -q "10.0.2.2:${BACKEND_PORT}" "$PROJECT_DIR/src/services/api.ts"; then
+        print_success "API correctly configured for Android emulator"
+    else
+        print_warning "API may not be configured for Android. Checking..."
+        if grep -q "Platform.OS === 'android'" "$PROJECT_DIR/src/services/api.ts"; then
+            print_success "API has Android-specific configuration"
+        else
+            print_warning "API might need Android-specific configuration for 10.0.2.2"
+        fi
     fi
 }
 
@@ -249,12 +289,36 @@ configure_device() {
     print_success "Device configured for local development"
 }
 
-# Step 9: Launch the app
-launch_app() {
-    print_status "Building and launching Android app..."
+# Step 9: Build and launch the app
+build_and_launch_app() {
+    print_status "Checking if app needs to be rebuilt..."
     
-    # Build and run the Android app
-    npx expo run:android --port ${METRO_PORT}
+    # Check if the app is already installed
+    if adb shell pm list packages 2>/dev/null | grep -q "com.sammuthu.cosmicboard"; then
+        print_status "App already installed. Launching..."
+        
+        # Launch the app
+        adb shell am start -n com.sammuthu.cosmicboard/.MainActivity 2>/dev/null || true
+        
+        # Reload the app to ensure latest code
+        sleep 2
+        adb shell input keyevent 82 2>/dev/null || true  # Open dev menu
+        sleep 1
+        adb shell input keyevent 82 2>/dev/null || true  # Try again if needed
+        
+        print_success "App launched! If you see a white screen, press 'r' in Metro terminal to reload"
+    else
+        print_status "Building and installing Android app (this may take a few minutes)..."
+        
+        # Clean build if requested
+        if [ "$1" = "--clean" ]; then
+            print_status "Cleaning build cache..."
+            cd android && ./gradlew clean && cd ..
+        fi
+        
+        # Build and run the Android app
+        npx expo run:android --port ${METRO_PORT}
+    fi
 }
 
 # Main execution flow
@@ -311,8 +375,8 @@ main() {
     echo -e "Metro Bundler:    ${GREEN}http://localhost:${METRO_PORT}${NC}"
     echo ""
     
-    # Launch the app
-    launch_app
+    # Build and launch the app
+    build_and_launch_app "$@"
 }
 
 # Cleanup function
