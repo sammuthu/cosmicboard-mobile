@@ -31,6 +31,20 @@ export interface Reference {
   updatedAt: string;
 }
 
+export interface Media {
+  _id: string;
+  projectId: string;
+  type: 'photo' | 'screenshot' | 'pdf';
+  name: string;
+  url: string;
+  thumbnailUrl?: string;
+  size: number;
+  mimeType: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProjectWithCounts extends Project {
   counts: {
     tasks: {
@@ -42,6 +56,11 @@ export interface ProjectWithCounts extends Project {
       total: number;
       snippets: number;
       documentation: number;
+    };
+    media: {
+      photos: number;
+      screenshots: number;
+      pdfs: number;
     };
   };
 }

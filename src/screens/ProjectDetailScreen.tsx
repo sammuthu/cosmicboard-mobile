@@ -54,7 +54,7 @@ export default function ProjectDetailScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { projectId } = route.params;
   
-  const [activeTab, setActiveTab] = useState<'tasks' | 'references'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'references' | 'media'>('tasks');
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
@@ -304,6 +304,14 @@ export default function ProjectDetailScreen() {
         >
           <Text style={[styles.tabText, activeTab === 'references' && styles.activeTabText]}>
             References ({references.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'media' && styles.activeTab]}
+          onPress={() => navigation.navigate('MediaScreen', { projectId })}
+        >
+          <Text style={[styles.tabText, activeTab === 'media' && styles.activeTabText]}>
+            Media
           </Text>
         </TouchableOpacity>
       </View>

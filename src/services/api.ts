@@ -6,9 +6,9 @@ import { Platform } from 'react-native';
 // For Android emulator, use 10.0.2.2 to access host machine's localhost
 const API_URL = __DEV__ 
   ? Platform.OS === 'android' 
-    ? 'http://10.0.2.2:7778/api'  // Android emulator special IP for host localhost
-    : 'http://localhost:7778/api'  // iOS simulator or web
-  : 'https://cosmic.board/api';  // For production
+    ? 'http://10.0.2.2:7779/api'  // Android emulator special IP for host localhost
+    : 'http://localhost:7779/api'  // iOS simulator or web
+  : 'https://api.cosmicboard.com/api';  // For production
 
 class ApiService {
   private token: string | null = null;
@@ -255,6 +255,66 @@ class ApiService {
       params: { q: query }
     });
     return response.data;
+  }
+
+  // Media
+  async getMedia(projectId?: string, type?: 'photo' | 'screenshot' | 'pdf') {
+    let url = `${API_URL}/media`;
+    const params: any = {};
+    
+    if (projectId) {
+      params.projectId = projectId;
+    }
+    if (type) {
+      params.type = type;
+    }
+    
+    const response = await axios.get(url, { params });
+    return response.data;
+  }
+
+  async getMediaItem(id: string) {
+    const response = await axios.get(`${API_URL}/media/${id}`);
+    return response.data;
+  }
+
+  async uploadMedia(projectId: string, file: {
+    uri: string;
+    type: string;
+    name: string;
+  }) {
+    const formData = new FormData();
+    formData.append('file', {
+      uri: file.uri,
+      type: file.type,
+      name: file.name,
+    } as any);
+    formData.append('projectId', projectId);
+
+    const response = await axios.post(`${API_URL}/media/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async uploadScreenshot(projectId: string, base64: string, name: string) {
+    const response = await axios.post(`${API_URL}/media/screenshot`, {
+      projectId,
+      image: base64,
+      name,
+    });
+    return response.data;
+  }
+
+  async updateMedia(id: string, data: { name?: string }) {
+    const response = await axios.put(`${API_URL}/media/${id}`, data);
+    return response.data;
+  }
+
+  async deleteMedia(id: string) {
+    await axios.delete(`${API_URL}/media/${id}`);
   }
 }
 
