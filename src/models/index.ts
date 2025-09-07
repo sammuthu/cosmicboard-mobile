@@ -45,3 +45,46 @@ export interface ProjectWithCounts extends Project {
     };
   };
 }
+
+// Media types based on web project implementation
+export interface MediaFile {
+  _id: string;
+  projectId: string;
+  name: string;
+  originalName: string;
+  url: string;
+  thumbnailUrl?: string;
+  type: 'photo' | 'screenshot' | 'pdf';
+  mimeType: string;
+  size: number;
+  metadata?: {
+    width?: number;
+    height?: number;
+    pages?: number; // For PDFs
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Photo extends MediaFile {
+  type: 'photo';
+  metadata: {
+    width: number;
+    height: number;
+  };
+}
+
+export interface Screenshot extends MediaFile {
+  type: 'screenshot';
+  metadata: {
+    width: number;
+    height: number;
+  };
+}
+
+export interface PDFFile extends MediaFile {
+  type: 'pdf';
+  metadata: {
+    pages: number;
+  };
+}

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Home, Search, Settings, FolderOpen, FileText, Code } from 'lucide-react-native';
+import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucide-react-native';
 import { colors } from '../styles/colors';
 
 // Import screens (we'll create these next)
@@ -12,12 +12,14 @@ import SearchScreen from '../screens/SearchScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import ReferenceDetailScreen from '../screens/ReferenceDetailScreen';
+import MediaScreen from '../screens/MediaScreen';
 
 export type RootStackParamList = {
   MainTabs: undefined;
   ProjectDetail: { projectId: string };
   TaskDetail: { taskId: string; projectId: string };
   ReferenceDetail: { reference: any };
+  Media: { projectId: string };
 };
 
 export type MainTabParamList = {
@@ -125,6 +127,14 @@ export default function AppNavigator() {
           component={ReferenceDetailScreen}
           options={{ 
             title: 'Reference Details',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen
+          name="Media"
+          component={MediaScreen}
+          options={{ 
+            title: 'Media',
             headerBackTitle: 'Back',
           }}
         />

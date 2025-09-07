@@ -288,6 +288,14 @@ export default function ProjectDetailScreen() {
             References ({references.length})
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.tab}
+          onPress={() => navigation.navigate('Media', { projectId })}
+        >
+          <Text style={styles.tabText}>
+            Media
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Content */}

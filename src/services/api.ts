@@ -1,10 +1,14 @@
 import axios from 'axios';
 import * as Keychain from 'react-native-keychain';
+import { Platform } from 'react-native';
 
 // Use the same backend as your web app
+// For Android emulator, use 10.0.2.2 to access host machine's localhost
 const API_URL = __DEV__ 
-  ? 'http://localhost:7778/api'  // For development - Express backend port
-  : 'https://cosmic.board/api';  // For production
+  ? Platform.OS === 'android' 
+    ? 'http://10.0.2.2:7779/api'  // Android emulator special IP for host localhost
+    : 'http://localhost:7779/api'  // iOS simulator or web
+  : 'https://cosmicspace.app/api';  // For production
 
 class ApiService {
   private token: string | null = null;
@@ -249,6 +253,42 @@ class ApiService {
   async searchTasks(projectId: string, query: string) {
     const response = await axios.get(`${API_URL}/projects/${projectId}/tasks/search`, {
       params: { q: query }
+    });
+    return response.data;
+  }
+
+  // Media endpoints
+  async getMedia(projectId: string, type?: 'photo' | 'screenshot' | 'pdf') {
+    const response = await axios.get(`${API_URL}/projects/${projectId}/media`, {
+      params: type ? { type } : {}
+    });
+    return response.data;
+  }
+
+  async uploadMedia(projectId: string, file: FormData) {
+    const response = await axios.post(`${API_URL}/projects/${projectId}/media`, file, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async uploadScreenshotFromClipboard(projectId: string, imageData: string, name: string) {
+    const response = await axios.post(`${API_URL}/projects/${projectId}/media/screenshot`, {
+      imageData,
+      name,
+    });
+    return response.data;
+  }
+
+  async deleteMedia(projectId: string, mediaId: string) {
+    await axios.delete(`${API_URL}/projects/${projectId}/media/${mediaId}`);
+  }
+
+  async renameMedia(projectId: string, mediaId: string, name: string) {
+    const response = await axios.put(`${API_URL}/projects/${projectId}/media/${mediaId}`, {
+      name,
     });
     return response.data;
   }
