@@ -16,6 +16,21 @@ CosmicBoard Mobile is a React Native (Expo) project management application with 
 - **Icons**: lucide-react-native
 - **Code Highlighting**: react-native-syntax-highlighter
 
+## Infrastructure Configuration
+
+**IMPORTANT**: All nginx, DNS, and reverse proxy configurations are centralized in:
+```
+/Users/sammuthu/Projects/nginx-reverse-proxy/
+```
+
+Do NOT place nginx, hosts, or dnsmasq configurations in individual project folders (cosmicboard, cosmicboard-mobile, or cosmicboard-backend).
+
+### Domain Configuration
+- **Primary Domain**: cosmicspace.app
+- **Legacy Domain**: cosmic.board (redirects to cosmicspace.app)
+- **Backend API**: Accessed via cosmicspace.app/api (proxied to localhost:7779)
+- **Mobile App Backend**: Points to cosmicspace.app/api in production
+
 ## Common Development Commands
 
 ```bash
