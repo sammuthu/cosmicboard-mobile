@@ -84,7 +84,12 @@ export interface Screenshot extends MediaFile {
 
 export interface PDFFile extends MediaFile {
   type: 'pdf';
-  metadata: {
-    pages: number;
+  metadata?: {
+    pages?: number;
+    extension?: string;
+    isViewable?: boolean;
+    type?: string;
+    width?: number;
+    height?: number;
   };
 }

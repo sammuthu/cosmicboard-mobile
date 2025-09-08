@@ -26,7 +26,16 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Plus
+  Plus,
+  File,
+  FileArchive,
+  FileCode,
+  FileSpreadsheet,
+  FileImage,
+  FileVideo,
+  FileAudio,
+  Eye,
+  EyeOff
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { colors } from '../styles/colors';
@@ -157,6 +166,129 @@ export default function MediaScreen() {
     );
   };
 
+  const handleFileUpload = async () => {
+    // File upload implementation for documents
+    Alert.alert('Upload File', 'File upload functionality will be implemented');
+  };
+
+  // Get file icon based on type
+  const getFileIcon = (doc: PDFFile) => {
+    const extension = doc.metadata?.extension?.toLowerCase() || '';
+    const mimeType = doc.mimeType?.toLowerCase() || '';
+    
+    if (mimeType.startsWith('image/')) {
+      return <FileImage color={colors.success} size={24} />;
+    }
+    if (mimeType === 'application/pdf' || extension === 'pdf') {
+      return <FileText color={colors.error} size={24} />;
+    }
+    if (['xls', 'xlsx', 'csv'].includes(extension)) {
+      return <FileSpreadsheet color={colors.cosmic.teal} size={24} />;
+    }
+    if (['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'xml', 'py'].includes(extension)) {
+      return <FileCode color={colors.cosmic.blue} size={24} />;
+    }
+    if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+      return <FileArchive color={colors.cosmic.purple} size={24} />;
+    }
+    if (mimeType.startsWith('video/')) {
+      return <FileVideo color={colors.cosmic.pink} size={24} />;
+    }
+    if (mimeType.startsWith('audio/')) {
+      return <FileAudio color={colors.warning} size={24} />;
+    }
+    return <File color={colors.text.muted} size={24} />;
+  };
+
+  // Format file size
+  const formatFileSize = (bytes: number) => {
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 B';
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  // Get file kind/type display name
+  const getFileKind = (doc: PDFFile) => {
+    const extension = doc.metadata?.extension?.toUpperCase() || '';
+    const mimeType = doc.mimeType?.toLowerCase() || '';
+    
+    if (mimeType.startsWith('image/')) return `${extension} Image`;
+    if (mimeType === 'application/pdf') return 'PDF Document';
+    if (['XLS', 'XLSX', 'CSV'].includes(extension)) return 'Spreadsheet';
+    if (['DOC', 'DOCX'].includes(extension)) return 'Word Document';
+    if (['ZIP', 'RAR', '7Z'].includes(extension)) return 'Archive';
+    if (mimeType.startsWith('video/')) return 'Video';
+    if (mimeType.startsWith('audio/')) return 'Audio';
+    if (extension) return `${extension} File`;
+    return 'Document';
+  };
+
+  // Render document item
+  const renderDocumentItem = (doc: PDFFile) => {
+    const isViewable = doc.metadata?.isViewable || false;
+    
+    return (
+      <View key={doc._id} style={styles.documentItem}>
+        <View style={styles.documentIcon}>
+          {getFileIcon(doc)}
+        </View>
+        
+        <View style={styles.documentInfo}>
+          {editingId === doc._id ? (
+            <TextInput
+              style={styles.editInput}
+              value={editName}
+              onChangeText={setEditName}
+              onBlur={() => handleRename(doc._id)}
+              onSubmitEditing={() => handleRename(doc._id)}
+              autoFocus
+            />
+          ) : (
+            <>
+              <Text style={styles.documentName} numberOfLines={1}>
+                {doc.name}
+              </Text>
+              <Text style={styles.documentMeta}>
+                {getFileKind(doc)} • {formatFileSize(doc.size)}
+              </Text>
+            </>
+          )}
+        </View>
+        
+        <View style={styles.documentActions}>
+          {isViewable ? (
+            <TouchableOpacity style={styles.iconButton}>
+              <Eye color={colors.text.primary} size={18} />
+            </TouchableOpacity>
+          ) : (
+            <View style={[styles.iconButton, styles.disabledButton]}>
+              <EyeOff color={colors.text.muted} size={18} />
+            </View>
+          )}
+          
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => startEditing(doc._id, doc.name)}
+          >
+            <Edit2 color={colors.text.primary} size={18} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.iconButton}>
+            <Download color={colors.text.primary} size={18} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => handleDelete(doc._id, doc.name)}
+          >
+            <Trash2 color={colors.error} size={18} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   const renderPhotoItem = ({ item, index }: { item: Photo; index: number }) => (
     <TouchableOpacity
       style={styles.photoItem}
@@ -262,12 +394,34 @@ export default function MediaScreen() {
         );
 
       case 'scrolls':
+        if (pdfs.length === 0) {
+          return (
+            <View style={styles.centerContainer}>
+              <FileText color={colors.text.muted} size={48} />
+              <Text style={styles.emptyText}>No documents yet</Text>
+              <Text style={styles.emptySubtext}>Upload any file to get started</Text>
+              <TouchableOpacity style={styles.uploadButton} onPress={handleFileUpload}>
+                <Upload color={colors.text.primary} size={20} />
+                <Text style={styles.uploadButtonText}>Upload File</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        }
         return (
-          <View style={styles.centerContainer}>
-            <FileText color={colors.text.muted} size={48} />
-            <Text style={styles.emptyText}>PDF documents</Text>
-            <Text style={styles.emptySubtext}>Feature coming soon</Text>
-          </View>
+          <ScrollView 
+            style={styles.scrollContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.cosmic.purple}
+              />
+            }
+          >
+            <View style={styles.fileList}>
+              {pdfs.map((doc) => renderDocumentItem(doc))}
+            </View>
+          </ScrollView>
         );
 
       default:
@@ -549,5 +703,69 @@ const styles = StyleSheet.create({
   },
   lightboxNavRight: {
     right: 20,
+  },
+  // Document list styles
+  scrollContainer: {
+    flex: 1,
+  },
+  fileList: {
+    padding: 16,
+  },
+  documentItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.ui.border,
+  },
+  documentIcon: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  documentInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  documentName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text.primary,
+    marginBottom: 4,
+  },
+  documentMeta: {
+    fontSize: 12,
+    color: colors.text.muted,
+  },
+  documentActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 6,
+    marginLeft: 4,
+  },
+  disabledButton: {
+    opacity: 0.4,
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.cosmic.blue,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 24,
+    marginTop: 24,
+  },
+  uploadButtonText: {
+    color: colors.text.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
 });
