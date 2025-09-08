@@ -11,6 +11,8 @@ import {
   Modal,
   Image,
   Dimensions,
+  TextInput,
+  FlatList,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { 
@@ -23,10 +25,10 @@ import {
   Download,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Plus
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import { colors } from '../styles/colors';
 import PrismCard from '../components/PrismCard';
 import apiService from '../services/api';
@@ -36,21 +38,24 @@ interface MediaScreenProps {
   projectId: string;
 }
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function MediaScreen() {
   const route = useRoute();
   const { projectId } = route.params as MediaScreenProps;
   
-  const [activeTab, setActiveTab] = useState<'photos' | 'screenshots' | 'pdfs'>('photos');
+  const [activeTab, setActiveTab] = useState<'moments' | 'snaps' | 'scrolls'>('moments');
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [pdfs, setPdfs] = useState<PDFFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [isUploading, setIsUploading] = useState(false);
+  
+  // Lightbox state
+  const [lightboxVisible, setLightboxVisible] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
 
   useEffect(() => {
     loadMedia();
@@ -59,104 +64,80 @@ export default function MediaScreen() {
   const loadMedia = async () => {
     try {
       setLoading(true);
-      const [photosData, screenshotsData, pdfsData] = await Promise.all([
-        apiService.getMedia(projectId, 'photo'),
-        apiService.getMedia(projectId, 'screenshot'),
-        apiService.getMedia(projectId, 'pdf'),
-      ]);
+      const mediaData = await apiService.getMedia(projectId);
+      
+      // Filter media by type to match web version
+      const photosData = mediaData.filter((m: MediaFile) => m.type === 'photo') as Photo[];
+      const screenshotsData = mediaData.filter((m: MediaFile) => m.type === 'screenshot') as Screenshot[];
+      const pdfsData = mediaData.filter((m: MediaFile) => m.type === 'pdf') as PDFFile[];
       
       setPhotos(photosData);
       setScreenshots(screenshotsData);
       setPdfs(pdfsData);
     } catch (error) {
       console.error('Failed to load media:', error);
-      Alert.alert('Error', 'Failed to load media files');
+      // Set empty arrays on error
+      setPhotos([]);
+      setScreenshots([]);
+      setPdfs([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleRefresh = async () => {
+  const onRefresh = () => {
     setRefreshing(true);
-    await loadMedia();
-    setRefreshing(false);
+    loadMedia();
   };
 
-  const pickImage = async () => {
+  const handlePhotoUpload = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission required', 'We need camera roll permissions to upload photos.');
-        return;
-      }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
+        quality: 1,
       });
 
-      if (!result.canceled && result.assets[0]) {
-        await uploadPhoto(result.assets[0]);
+      if (!result.canceled) {
+        // In a real implementation, we'd upload the image here
+        console.log('Photo selected:', result.assets[0]);
+        Alert.alert('Photo Upload', 'Photo upload functionality will be implemented');
       }
     } catch (error) {
-      console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to pick image');
-    }
-  };
-
-  const takePhoto = async () => {
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission required', 'We need camera permissions to take photos.');
-        return;
-      }
-
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        await uploadPhoto(result.assets[0]);
-      }
-    } catch (error) {
-      console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo');
-    }
-  };
-
-  const uploadPhoto = async (asset: ImagePicker.ImagePickerAsset) => {
-    try {
-      setIsUploading(true);
-      
-      const formData = new FormData();
-      formData.append('file', {
-        uri: asset.uri,
-        name: asset.fileName || `photo_${Date.now()}.jpg`,
-        type: asset.type || 'image/jpeg',
-      } as any);
-      formData.append('type', activeTab === 'photos' ? 'photo' : 'screenshot');
-
-      await apiService.uploadMedia(projectId, formData);
-      await loadMedia(); // Refresh media list
-      
-      Alert.alert('Success', 'Photo uploaded successfully');
-    } catch (error) {
-      console.error('Error uploading photo:', error);
+      console.error('Photo upload error:', error);
       Alert.alert('Error', 'Failed to upload photo');
-    } finally {
-      setIsUploading(false);
     }
   };
 
-  const deleteMedia = async (mediaId: string) => {
+  const openLightbox = (photo: Photo, index: number) => {
+    setCurrentImageIndex(index);
+    setLightboxVisible(true);
+  };
+
+  const startEditing = (id: string, currentName: string) => {
+    setEditingId(id);
+    setEditName(currentName);
+  };
+
+  const handleRename = async (id: string) => {
+    if (editName.trim() && editName !== editName) {
+      try {
+        await apiService.renameMedia(id, editName.trim());
+        await loadMedia(); // Reload to get updated data
+      } catch (error) {
+        console.error('Rename error:', error);
+        Alert.alert('Error', 'Failed to rename file');
+      }
+    }
+    setEditingId(null);
+    setEditName('');
+  };
+
+  const handleDelete = async (id: string, name: string) => {
     Alert.alert(
-      'Delete Media',
-      'Are you sure you want to delete this media file?',
+      'Delete File',
+      `Are you sure you want to delete "${name}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -164,12 +145,11 @@ export default function MediaScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await apiService.deleteMedia(projectId, mediaId);
+              await apiService.deleteMedia(id);
               await loadMedia();
-              Alert.alert('Success', 'Media file deleted');
             } catch (error) {
-              console.error('Error deleting media:', error);
-              Alert.alert('Error', 'Failed to delete media file');
+              console.error('Delete error:', error);
+              Alert.alert('Error', 'Failed to delete file');
             }
           },
         },
@@ -177,240 +157,221 @@ export default function MediaScreen() {
     );
   };
 
-  const openLightbox = (media: MediaFile, index: number) => {
-    setSelectedMedia(media);
-    setSelectedIndex(index);
-  };
+  const renderPhotoItem = ({ item, index }: { item: Photo; index: number }) => (
+    <TouchableOpacity
+      style={styles.photoItem}
+      onPress={() => openLightbox(item, index)}
+    >
+      <PrismCard variant="media" aspectRatio="square">
+        <Image
+          source={{ uri: item.thumbnailUrl || item.url }}
+          style={styles.photoImage}
+          resizeMode="cover"
+        />
+        <View style={styles.photoOverlay}>
+          <Text style={styles.photoName} numberOfLines={1}>
+            {editingId === item._id ? (
+              <TextInput
+                style={styles.editInput}
+                value={editName}
+                onChangeText={setEditName}
+                onBlur={() => handleRename(item._id)}
+                onSubmitEditing={() => handleRename(item._id)}
+                autoFocus
+              />
+            ) : (
+              item.name
+            )}
+          </Text>
+          <View style={styles.photoActions}>
+            <TouchableOpacity
+              onPress={() => startEditing(item._id, item.name)}
+              style={styles.actionButton}
+            >
+              <Edit2 color={colors.text.primary} size={16} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleDelete(item._id, item.name)}
+              style={styles.actionButton}
+            >
+              <Trash2 color={colors.error} size={16} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </PrismCard>
+    </TouchableOpacity>
+  );
 
-  const closeLightbox = () => {
-    setSelectedMedia(null);
-    setSelectedIndex(-1);
-  };
+  const renderUploadArea = () => (
+    <TouchableOpacity style={styles.uploadArea} onPress={handlePhotoUpload}>
+      <PrismCard variant="media" aspectRatio="square">
+        <View style={styles.uploadContent}>
+          <Plus color={colors.cosmic.purple} size={32} />
+          <Text style={styles.uploadText}>Add Photo</Text>
+        </View>
+      </PrismCard>
+    </TouchableOpacity>
+  );
 
-  const navigateMedia = (direction: 'prev' | 'next') => {
-    if (selectedIndex === -1) return;
-    
-    const currentList = activeTab === 'photos' ? photos : 
-                      activeTab === 'screenshots' ? screenshots : pdfs;
-    
-    const newIndex = direction === 'prev' 
-      ? Math.max(0, selectedIndex - 1)
-      : Math.min(currentList.length - 1, selectedIndex + 1);
-    
-    setSelectedIndex(newIndex);
-    setSelectedMedia(currentList[newIndex]);
-  };
-
-  const formatFileSize = (bytes: number) => {
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    if (bytes === 0) return '0 B';
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
-  };
-
-  const getCurrentMediaList = () => {
-    switch (activeTab) {
-      case 'photos': return photos;
-      case 'screenshots': return screenshots;
-      case 'pdfs': return pdfs;
-      default: return [];
-    }
-  };
-
-  const renderMediaGrid = (mediaList: MediaFile[]) => {
-    if (mediaList.length === 0) {
+  const renderTabContent = () => {
+    if (loading) {
       return (
-        <View style={styles.emptyState}>
-          <ImageIcon color={colors.text.muted} size={64} />
-          <Text style={styles.emptyText}>
-            No {activeTab} yet
-          </Text>
-          <Text style={styles.emptySubText}>
-            Upload your first {activeTab.slice(0, -1)} to get started
-          </Text>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.cosmic.purple} />
+          <Text style={styles.loadingText}>Loading media...</Text>
         </View>
       );
     }
 
-    return (
-      <View style={styles.mediaGrid}>
-        {mediaList.map((media, index) => (
-          <TouchableOpacity
-            key={media._id}
-            style={styles.mediaItem}
-            onPress={() => openLightbox(media, index)}
-          >
-            {media.type === 'pdf' ? (
-              <View style={styles.pdfThumbnail}>
-                <FileText color={colors.cosmic.purple} size={40} />
-                <Text style={styles.pdfText} numberOfLines={2}>
-                  {media.name}
-                </Text>
+    switch (activeTab) {
+      case 'moments':
+        const photosWithUpload = [...photos];
+        return (
+          <FlatList
+            data={photosWithUpload}
+            renderItem={renderPhotoItem}
+            keyExtractor={(item, index) => item._id || `upload-${index}`}
+            numColumns={2}
+            columnWrapperStyle={styles.photoRow}
+            contentContainerStyle={styles.photoGrid}
+            ListHeaderComponent={renderUploadArea}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <ImageIcon color={colors.text.muted} size={48} />
+                <Text style={styles.emptyText}>No photos yet</Text>
+                <Text style={styles.emptySubtext}>Tap + to add your first photo</Text>
               </View>
-            ) : (
-              <Image 
-                source={{ uri: media.thumbnailUrl || media.url }} 
-                style={styles.thumbnail}
-                resizeMode="cover"
+            }
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.cosmic.purple}
               />
-            )}
-            
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={(e) => {
-                e.stopPropagation();
-                deleteMedia(media._id);
-              }}
-            >
-              <Trash2 color="white" size={16} />
-            </TouchableOpacity>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  };
+            }
+          />
+        );
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.cosmic.purple} />
-        <Text style={styles.loadingText}>Loading media...</Text>
-      </View>
-    );
-  }
+      case 'snaps':
+        return (
+          <View style={styles.centerContainer}>
+            <Camera color={colors.text.muted} size={48} />
+            <Text style={styles.emptyText}>Screenshot capture</Text>
+            <Text style={styles.emptySubtext}>Feature coming soon</Text>
+          </View>
+        );
+
+      case 'scrolls':
+        return (
+          <View style={styles.centerContainer}>
+            <FileText color={colors.text.muted} size={48} />
+            <Text style={styles.emptyText}>PDF documents</Text>
+            <Text style={styles.emptySubtext}>Feature coming soon</Text>
+          </View>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
-        {[
-          { key: 'photos', label: 'Photos', icon: ImageIcon },
-          { key: 'screenshots', label: 'Screenshots', icon: Camera },
-          { key: 'pdfs', label: 'PDFs', icon: FileText },
-        ].map(({ key, label, icon: Icon }) => (
-          <TouchableOpacity
-            key={key}
-            style={[styles.tab, activeTab === key && styles.activeTab]}
-            onPress={() => setActiveTab(key as any)}
-          >
-            <Icon 
-              color={activeTab === key ? colors.cosmic.purple : colors.text.muted} 
-              size={20} 
-            />
-            <Text style={[
-              styles.tabText, 
-              activeTab === key && styles.activeTabText
-            ]}>
-              {label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      {/* Tab Bar - matching web version */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            activeTab === 'moments' && styles.activeTabMoments
+          ]}
+          onPress={() => setActiveTab('moments')}
+        >
+          <Text style={[
+            styles.tabText,
+            activeTab === 'moments' && styles.activeTabText
+          ]}>
+            📸 Moments
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            activeTab === 'snaps' && styles.activeTabSnaps
+          ]}
+          onPress={() => setActiveTab('snaps')}
+        >
+          <Text style={[
+            styles.tabText,
+            activeTab === 'snaps' && styles.activeTabText
+          ]}>
+            📎 Snaps
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            activeTab === 'scrolls' && styles.activeTabScrolls
+          ]}
+          onPress={() => setActiveTab('scrolls')}
+        >
+          <Text style={[
+            styles.tabText,
+            activeTab === 'scrolls' && styles.activeTabText
+          ]}>
+            📄 Scrolls
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Upload Section */}
-      <PrismCard style={styles.uploadCard}>
-        <Text style={styles.uploadTitle}>
-          Upload {activeTab.slice(0, -1)}
-        </Text>
-        <View style={styles.uploadButtons}>
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={pickImage}
-            disabled={isUploading}
-          >
-            <Upload color="white" size={20} />
-            <Text style={styles.uploadButtonText}>
-              {isUploading ? 'Uploading...' : 'From Gallery'}
-            </Text>
-          </TouchableOpacity>
-          
-          {activeTab !== 'pdfs' && (
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={takePhoto}
-              disabled={isUploading}
-            >
-              <Camera color="white" size={20} />
-              <Text style={styles.uploadButtonText}>Take Photo</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </PrismCard>
-
-      {/* Media Content */}
-      <ScrollView
-        style={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-      >
-        {renderMediaGrid(getCurrentMediaList())}
-      </ScrollView>
+      {/* Content Area */}
+      <View style={styles.content}>
+        {renderTabContent()}
+      </View>
 
       {/* Lightbox Modal */}
-      {selectedMedia && (
-        <Modal
-          visible={true}
-          animationType="fade"
-          statusBarTranslucent
-          onRequestClose={closeLightbox}
-        >
-          <View style={styles.lightboxContainer}>
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={closeLightbox}
-            >
-              <X color="white" size={24} />
-            </TouchableOpacity>
-
-            {selectedIndex > 0 && (
+      <Modal
+        visible={lightboxVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setLightboxVisible(false)}
+      >
+        <View style={styles.lightboxContainer}>
+          <TouchableOpacity
+            style={styles.lightboxClose}
+            onPress={() => setLightboxVisible(false)}
+          >
+            <X color={colors.text.primary} size={24} />
+          </TouchableOpacity>
+          
+          {photos[currentImageIndex] && (
+            <Image
+              source={{ uri: photos[currentImageIndex].url }}
+              style={styles.lightboxImage}
+              resizeMode="contain"
+            />
+          )}
+          
+          {photos.length > 1 && (
+            <>
               <TouchableOpacity
-                style={styles.navButtonLeft}
-                onPress={() => navigateMedia('prev')}
+                style={[styles.lightboxNav, styles.lightboxNavLeft]}
+                onPress={() => setCurrentImageIndex(Math.max(0, currentImageIndex - 1))}
               >
-                <ChevronLeft color="white" size={24} />
+                <ChevronLeft color={colors.text.primary} size={32} />
               </TouchableOpacity>
-            )}
-
-            {selectedIndex < getCurrentMediaList().length - 1 && (
-              <TouchableOpacity
-                style={styles.navButtonRight}
-                onPress={() => navigateMedia('next')}
-              >
-                <ChevronRight color="white" size={24} />
-              </TouchableOpacity>
-            )}
-
-            <View style={styles.lightboxContent}>
-              {selectedMedia.type === 'pdf' ? (
-                <View style={styles.pdfViewer}>
-                  <FileText color={colors.cosmic.purple} size={80} />
-                  <Text style={styles.pdfViewerText}>{selectedMedia.name}</Text>
-                  <Text style={styles.pdfViewerSubText}>
-                    PDF • {formatFileSize(selectedMedia.size)}
-                  </Text>
-                </View>
-              ) : (
-                <Image
-                  source={{ uri: selectedMedia.url }}
-                  style={styles.lightboxImage}
-                  resizeMode="contain"
-                />
-              )}
               
-              <View style={styles.mediaInfo}>
-                <Text style={styles.mediaName}>{selectedMedia.name}</Text>
-                <Text style={styles.mediaDetails}>
-                  {selectedMedia.metadata?.width && selectedMedia.metadata?.height
-                    ? `${selectedMedia.metadata.width} × ${selectedMedia.metadata.height} • `
-                    : ''}
-                  {formatFileSize(selectedMedia.size)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Modal>
-      )}
+              <TouchableOpacity
+                style={[styles.lightboxNav, styles.lightboxNavRight]}
+                onPress={() => setCurrentImageIndex(Math.min(photos.length - 1, currentImageIndex + 1))}
+              >
+                <ChevronRight color={colors.text.primary} size={32} />
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -420,210 +381,173 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.primary,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background.primary,
-  },
-  loadingText: {
-    color: colors.text.secondary,
-    marginTop: 16,
-    fontSize: 16,
-  },
-  tabContainer: {
+  tabBar: {
     flexDirection: 'row',
     backgroundColor: colors.background.secondary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ui.border,
   },
   tab: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
     paddingHorizontal: 8,
-    borderRadius: 8,
+    alignItems: 'center',
   },
-  activeTab: {
-    backgroundColor: colors.cosmic.purple + '20',
+  activeTabMoments: {
+    backgroundColor: 'rgba(59, 130, 246, 0.3)', // Blue gradient
+    borderBottomWidth: 2,
+    borderBottomColor: colors.cosmic.blue,
+  },
+  activeTabSnaps: {
+    backgroundColor: 'rgba(34, 197, 94, 0.3)', // Green gradient
+    borderBottomWidth: 2,
+    borderBottomColor: colors.success,
+  },
+  activeTabScrolls: {
+    backgroundColor: 'rgba(239, 68, 68, 0.3)', // Red gradient
+    borderBottomWidth: 2,
+    borderBottomColor: colors.error,
   },
   tabText: {
-    color: colors.text.muted,
     fontSize: 14,
-    marginLeft: 8,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: colors.text.secondary,
   },
   activeTabText: {
-    color: colors.cosmic.purple,
-  },
-  uploadCard: {
-    margin: 16,
-  },
-  uploadTitle: {
     color: colors.text.primary,
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  uploadButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  uploadButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.cosmic.purple,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    gap: 8,
-  },
-  uploadButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
   },
-  emptyState: {
+  centerContainer: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 80,
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: colors.text.secondary,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    padding: 40,
   },
   emptyText: {
-    color: colors.text.secondary,
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: '600',
+    color: colors.text.primary,
     marginTop: 16,
   },
-  emptySubText: {
-    color: colors.text.muted,
+  emptySubtext: {
     fontSize: 14,
+    color: colors.text.muted,
     marginTop: 8,
-  },
-  mediaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    paddingBottom: 20,
-  },
-  mediaItem: {
-    width: (screenWidth - 48) / 2,
-    aspectRatio: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  thumbnail: {
-    width: '100%',
-    height: '100%',
-  },
-  pdfThumbnail: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: colors.background.secondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-  },
-  pdfText: {
-    color: colors.text.primary,
-    fontSize: 12,
     textAlign: 'center',
-    marginTop: 8,
   },
-  deleteButton: {
+  photoGrid: {
+    padding: 16,
+  },
+  photoRow: {
+    justifyContent: 'space-between',
+  },
+  photoItem: {
+    width: (screenWidth - 48) / 2, // Account for padding and gap
+    marginBottom: 16,
+  },
+  uploadArea: {
+    width: (screenWidth - 48) / 2,
+    marginBottom: 16,
+    alignSelf: 'center',
+  },
+  uploadContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.cosmic.purple,
+    borderStyle: 'dashed',
+  },
+  uploadText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: colors.cosmic.purple,
+    fontWeight: '600',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  photoOverlay: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(239, 68, 68, 0.9)',
-    borderRadius: 16,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 8,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  photoName: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.text.primary,
+    fontWeight: '500',
+  },
+  editInput: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.text.primary,
+    backgroundColor: colors.background.primary,
+    padding: 4,
+    borderRadius: 4,
+  },
+  photoActions: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    marginLeft: 8,
     padding: 4,
   },
+  // Lightbox styles
   lightboxContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeButton: {
+  lightboxClose: {
     position: 'absolute',
-    top: 50,
+    top: 60,
     right: 20,
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 20,
+    zIndex: 1,
     padding: 8,
-  },
-  navButtonLeft: {
-    position: 'absolute',
-    left: 20,
-    top: '50%',
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderRadius: 20,
-    padding: 8,
-  },
-  navButtonRight: {
-    position: 'absolute',
-    right: 20,
-    top: '50%',
-    zIndex: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 20,
-    padding: 8,
-  },
-  lightboxContent: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   lightboxImage: {
-    width: screenWidth * 0.9,
-    height: screenHeight * 0.7,
+    width: screenWidth,
+    height: '70%',
   },
-  pdfViewer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  pdfViewerText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '500',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  pdfViewerSubText: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    marginTop: 8,
-  },
-  mediaInfo: {
+  lightboxNav: {
     position: 'absolute',
-    bottom: 40,
+    top: '50%',
+    marginTop: -20,
+    padding: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+  },
+  lightboxNavLeft: {
     left: 20,
+  },
+  lightboxNavRight: {
     right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 8,
-    padding: 16,
-  },
-  mediaName: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  mediaDetails: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    marginTop: 4,
   },
 });
