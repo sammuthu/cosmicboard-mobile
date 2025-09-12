@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as Keychain from 'react-native-keychain';
 import { Platform } from 'react-native';
+import authService from './auth.service';
 
 // Use the same backend as your web app
 // For Android emulator, use 10.0.2.2 to access host machine's localhost
@@ -13,6 +14,35 @@ const API_URL = __DEV__
 class ApiService {
   private token: string | null = null;
   private refreshToken: string | null = null;
+
+  constructor() {
+    // Set up axios interceptor to add auth token to all requests
+    axios.interceptors.request.use(
+      async (config) => {
+        const token = authService.getAccessToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // Set up response interceptor to handle token refresh
+    axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response?.status === 401) {
+          // Token might be expired, try to refresh
+          // For now, just logout
+          await authService.logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
 
   async init() {
     try {
