@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import AuthScreen from './src/screens/AuthScreen';
 import authService from './src/services/auth.service';
@@ -14,25 +14,23 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    checkAuthStatus();
+    // Auto-login for development
+    if (__DEV__) {
+      const devUser = {
+        email: 'nmuthu@gmail.com',
+        name: 'Dev User',
+        id: 'dev-user-001'
+      };
+      setUser(devUser);
+      setIsAuthenticated(true);
+      setIsLoading(false);
+    } else {
+      checkAuthStatus();
+    }
   }, []);
 
   const checkAuthStatus = async () => {
     try {
-      // Auto-login for development
-      if (__DEV__) {
-        // Simulate successful auth for development
-        const devUser = {
-          email: 'nmuthu@gmail.com',
-          name: 'Dev User',
-          id: 'dev-user-001'
-        };
-        setUser(devUser);
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return;
-      }
-
       const authenticated = authService.isAuthenticated();
       if (authenticated) {
         const storedUser = await authService.getStoredUser();
@@ -61,9 +59,12 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.cosmic.purple} />
-      </View>
+      <SafeAreaProvider>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.cosmic.purple} />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </SafeAreaProvider>
     );
   }
 
@@ -87,5 +88,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.background.primary,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: colors.text.secondary,
+    fontSize: 16,
   },
 });
