@@ -210,10 +210,10 @@ export default function HomeScreen() {
             {priorityTasks.map((task) => (
               <TouchableOpacity
                 key={task.id}
-                onPress={() => navigation.navigate('TaskDetail', {
-                  taskId: task.id,
-                  projectId: task.projectId
-                })}
+                onPress={() => {
+                  // TaskDetail not implemented yet
+                  console.log('TaskDetail navigation disabled - screen not implemented');
+                }}
                 activeOpacity={0.9}
               >
                 <LinearGradient

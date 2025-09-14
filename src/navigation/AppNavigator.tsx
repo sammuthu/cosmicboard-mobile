@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucide-react-native';
 import { colors } from '../styles/colors';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Import screens (we'll create these next)
 import HomeScreen from '../screens/HomeScreen';
@@ -36,22 +38,24 @@ const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function MainTabs() {
+  const { theme } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: colors.background.secondary,
-          borderTopColor: colors.ui.border,
+          backgroundColor: theme.colors.background.secondary,
+          borderTopColor: theme.colors.ui.border,
           borderTopWidth: 1,
         },
-        tabBarActiveTintColor: colors.cosmic.purple,
-        tabBarInactiveTintColor: colors.text.muted,
+        tabBarActiveTintColor: theme.colors.cosmic.purple,
+        tabBarInactiveTintColor: theme.colors.text.muted,
         headerStyle: {
-          backgroundColor: colors.background.secondary,
+          backgroundColor: theme.colors.background.secondary,
           shadowColor: 'transparent',
           elevation: 0,
         },
-        headerTintColor: colors.text.primary,
+        headerTintColor: theme.colors.text.primary,
       }}
     >
       <Tab.Screen
@@ -62,24 +66,31 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <Home color={color} size={size} />
           ),
-          header: () => (
-            <LinearGradient
-              colors={[colors.background.secondary, colors.background.primary]}
-              style={styles.header}
-            >
-              <View style={styles.headerContent}>
-                <LinearGradient
-                  colors={[colors.cosmic.purple, colors.cosmic.pink, colors.cosmic.cyan]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.titleGradient}
-                >
-                  <Text style={styles.headerTitle}>Cosmic Space</Text>
-                </LinearGradient>
-                <Text style={styles.headerSubtitle}>Align your actions with the cosmos</Text>
+          header: () => {
+            const { theme } = useTheme();
+            return (
+              <View style={[styles.header, { backgroundColor: theme.colors.background.secondary }]}>
+                <View style={styles.headerContent}>
+                  <LinearGradient
+                    colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink, theme.colors.cosmic.cyan]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.titleGradient}
+                  >
+                    <Text style={styles.headerTitle}>Cosmic Space</Text>
+                  </LinearGradient>
+                  <LinearGradient
+                    colors={[theme.colors.cosmic.cyan, theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.subtitleGradient}
+                  >
+                    <Text style={styles.headerSubtitle}>Align your actions with the cosmos</Text>
+                  </LinearGradient>
+                </View>
               </View>
-            </LinearGradient>
-          ),
+            );
+          },
         }}
       />
       <Tab.Screen
@@ -122,43 +133,50 @@ const styles = StyleSheet.create({
     paddingTop: 44, // Status bar height
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.ui.border + '30',
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerContent: {
     alignItems: 'center',
   },
   titleGradient: {
+    marginBottom: 6,
+  },
+  subtitleGradient: {
     paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginBottom: 4,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text.primary,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    color: 'transparent',
   },
   headerSubtitle: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    opacity: 0.8,
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 0.5,
+    color: 'transparent',
   },
 });
 
 export default function AppNavigator() {
+  const { theme, themeName } = useTheme();
+
+  // Determine StatusBar style based on theme
+  const statusBarStyle = themeName === 'daylight' ? 'dark' : 'light';
+
   return (
     <NavigationContainer>
+      <StatusBar style={statusBarStyle} />
       <Stack.Navigator
         screenOptions={{
           headerStyle: {
-            backgroundColor: colors.background.secondary,
+            backgroundColor: theme.colors.background.secondary,
             shadowColor: 'transparent',
             elevation: 0,
           },
-          headerTintColor: colors.text.primary,
+          headerTintColor: theme.colors.text.primary,
           cardStyle: {
-            backgroundColor: colors.background.primary,
+            backgroundColor: theme.colors.background.primary,
           },
         }}
       >

@@ -71,7 +71,6 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <StatusBar style="light" />
         {isAuthenticated ? (
           <AppNavigator />
         ) : (
