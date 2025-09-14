@@ -169,8 +169,8 @@ export default function HomeScreen() {
             <View style={styles.statIconBox}>
               <TrendingUp size={18} color={theme.colors.cosmic.purple} />
             </View>
-            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.projects}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Projects</Text>
+            <Text style={[styles.statNumber, { color: '#1a1a1a' }]}>{stats.projects}</Text>
+            <Text style={[styles.statLabel, { color: '#4a4a4a' }]}>Projects</Text>
           </View>
 
           <View
@@ -182,8 +182,8 @@ export default function HomeScreen() {
             <View style={styles.statIconBox}>
               <Zap size={18} color={theme.colors.cosmic.cyan} />
             </View>
-            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.activeTasks}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Active</Text>
+            <Text style={[styles.statNumber, { color: '#1a1a1a' }]}>{stats.activeTasks}</Text>
+            <Text style={[styles.statLabel, { color: '#4a4a4a' }]}>Active</Text>
           </View>
 
           <View
@@ -195,8 +195,8 @@ export default function HomeScreen() {
             <View style={styles.statIconBox}>
               <CheckCircle size={18} color={theme.colors.status.completed} />
             </View>
-            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.completedToday}</Text>
-            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Today</Text>
+            <Text style={[styles.statNumber, { color: '#1a1a1a' }]}>{stats.completedToday}</Text>
+            <Text style={[styles.statLabel, { color: '#4a4a4a' }]}>Today</Text>
           </View>
         </ScrollView>
 
@@ -235,10 +235,10 @@ export default function HomeScreen() {
                       { backgroundColor: task.priority === 'SUPERNOVA' ? theme.colors.priority.supernova : theme.colors.priority.stellar }
                     ]} />
                     <View style={styles.taskInfo}>
-                      <Text style={[styles.taskTitle, { color: theme.colors.text.primary }]} numberOfLines={1}>{task.title}</Text>
-                      <Text style={[styles.taskProject, { color: theme.colors.text.secondary }]}>{task.projectName}</Text>
+                      <Text style={[styles.taskTitle, { color: '#1a1a1a' }]} numberOfLines={1}>{task.title}</Text>
+                      <Text style={[styles.taskProject, { color: '#4a4a4a' }]}>{task.projectName}</Text>
                     </View>
-                    <ArrowRight size={16} color={theme.colors.text.muted} />
+                    <ArrowRight size={16} color='#6a6a6a' />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -272,12 +272,12 @@ export default function HomeScreen() {
                   {activity.icon}
                 </View>
                 <View style={styles.activityText}>
-                  <Text style={[styles.activityLine, { color: theme.colors.text.secondary }]}>
-                    <Text style={[styles.activityUser, { color: theme.colors.text.primary }]}>{activity.user}</Text>
+                  <Text style={[styles.activityLine, { color: '#4a4a4a' }]}>
+                    <Text style={[styles.activityUser, { color: '#1a1a1a' }]}>{activity.user}</Text>
                     {' '}{activity.action}{' '}
                     <Text style={[styles.activityTarget, { color: theme.colors.cosmic.purple }]}>{activity.target}</Text>
                   </Text>
-                  <Text style={[styles.activityTime, { color: theme.colors.text.muted }]}>{activity.time}</Text>
+                  <Text style={[styles.activityTime, { color: '#6a6a6a' }]}>{activity.time}</Text>
                 </View>
               </View>
             ))}

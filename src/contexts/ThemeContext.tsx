@@ -49,10 +49,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#0a0a0f',
-        secondary: '#3a3a4e',
-        tertiary: '#4a4a5e',
-        card: '#3a3a4e',
-        elevated: '#4a4a5e',
+        secondary: '#e8e8ea',
+        tertiary: '#f0f0f2',
+        card: '#e8e8ea',
+        elevated: '#f0f0f2',
       },
       text: {
         primary: '#ffffff',
@@ -127,10 +127,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#0f172a',
-        secondary: '#475569',
-        tertiary: '#64748b',
-        card: '#475569',
-        elevated: '#64748b',
+        secondary: '#e8e8ea',
+        tertiary: '#f0f0f2',
+        card: '#e8e8ea',
+        elevated: '#f0f0f2',
       },
       text: {
         primary: '#f1f5f9',
@@ -166,10 +166,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#09090b',
-        secondary: '#52525b',
-        tertiary: '#71717a',
-        card: '#52525b',
-        elevated: '#71717a',
+        secondary: '#e8e8ea',
+        tertiary: '#f0f0f2',
+        card: '#e8e8ea',
+        elevated: '#f0f0f2',
       },
       text: {
         primary: '#fafafa',
@@ -205,10 +205,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#0a0e1a',
-        secondary: '#364455',
-        tertiary: '#4a5a70',
-        card: '#364455',
-        elevated: '#4a5a70',
+        secondary: '#e8e8ea',
+        tertiary: '#f0f0f2',
+        card: '#e8e8ea',
+        elevated: '#f0f0f2',
       },
       text: {
         primary: '#e0f2fe',
@@ -244,10 +244,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#120826',
-        secondary: '#4a3a68',
-        tertiary: '#5e4a7d',
-        card: '#4a3a68',
-        elevated: '#5e4a7d',
+        secondary: '#e8e8ea',
+        tertiary: '#f0f0f2',
+        card: '#e8e8ea',
+        elevated: '#f0f0f2',
       },
       text: {
         primary: '#e9d5ff',
