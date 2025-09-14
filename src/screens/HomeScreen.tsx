@@ -18,14 +18,8 @@ import {
   ListTodo,
   Code,
   Image,
-  Search,
-  Settings,
-  Star,
-  Moon,
-  Sun,
+  TrendingUp,
   Zap,
-  Sparkles,
-  Cloud
 } from 'lucide-react-native';
 import { colors } from '../styles/colors';
 import PrismCard from '../components/PrismCard';
@@ -38,50 +32,19 @@ type TabNavigationProp = BottomTabNavigationProp<MainTabParamList>;
 
 const { width } = Dimensions.get('window');
 
-interface Theme {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  colors: {
-    primary: string;
-    secondary: string;
-  };
-}
-
-const themes: Theme[] = [
-  { id: 'cosmic', name: 'Cosmic', icon: <Star size={20} color="#8B5CF6" />, colors: { primary: '#8B5CF6', secondary: '#EC4899' } },
-  { id: 'nebula', name: 'Nebula', icon: <Cloud size={20} color="#3B82F6" />, colors: { primary: '#3B82F6', secondary: '#06B6D4' } },
-  { id: 'stellar', name: 'Stellar', icon: <Sun size={20} color="#F59E0B" />, colors: { primary: '#F59E0B', secondary: '#EF4444' } },
-  { id: 'aurora', name: 'Aurora', icon: <Sparkles size={20} color="#10B981" />, colors: { primary: '#10B981', secondary: '#14B8A6' } },
-  { id: 'quantum', name: 'Quantum', icon: <Zap size={20} color="#8B5CF6" />, colors: { primary: '#8B5CF6', secondary: '#3B82F6' } },
-];
-
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const tabNavigation = useNavigation<TabNavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [selectedTheme, setSelectedTheme] = useState('cosmic');
-  const [user, setUser] = useState<any>(null);
   const [currentPriority, setCurrentPriority] = useState<any>(null);
   const [projectsCount, setProjectsCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
   const [referencesCount, setReferencesCount] = useState(0);
+  const [activeTasks, setActiveTasks] = useState(0);
 
   const loadData = async () => {
     try {
-      // Get user info - in dev mode, use mock user
-      if (__DEV__) {
-        setUser({
-          email: 'nmuthu@gmail.com',
-          name: 'N Muthu',
-          id: 'dev-user-001'
-        });
-      } else {
-        const storedUser = await authService.getStoredUser();
-        setUser(storedUser);
-      }
-
       // Get projects count
       const projects = await apiService.getProjects();
       setProjectsCount(projects.length);
@@ -89,6 +52,7 @@ export default function HomeScreen() {
       // Calculate total tasks and references
       let totalTasks = 0;
       let totalRefs = 0;
+      let activeTaskCount = 0;
 
       for (const project of projects) {
         if (project.tasksCount) totalTasks += project.tasksCount;
@@ -98,26 +62,29 @@ export default function HomeScreen() {
       setTasksCount(totalTasks);
       setReferencesCount(totalRefs);
 
-      // Get current priority task (first supernova task)
+      // Get current priority task and count active tasks
       if (projects.length > 0) {
         for (const project of projects) {
           try {
             const tasks = await apiService.getTasks(project.id || project._id);
+            const activeTasks = tasks.filter((t: any) => t.status === 'ACTIVE');
+            activeTaskCount += activeTasks.length;
+
             const supernovaTasks = tasks.filter((t: any) =>
               t.priority === 'SUPERNOVA' && t.status === 'ACTIVE'
             );
-            if (supernovaTasks.length > 0) {
+            if (!currentPriority && supernovaTasks.length > 0) {
               setCurrentPriority({
                 ...supernovaTasks[0],
                 projectName: project.name
               });
-              break;
             }
           } catch (error) {
             console.error('Error loading tasks:', error);
           }
         }
       }
+      setActiveTasks(activeTaskCount);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -135,15 +102,6 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  const getUserInitial = () => {
-    if (user?.name) {
-      return user.name.charAt(0).toUpperCase();
-    }
-    if (user?.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    return 'U';
-  };
 
   const features = [
     {
@@ -200,6 +158,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       style={styles.container}
+      contentContainerStyle={styles.scrollContent}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -207,103 +166,106 @@ export default function HomeScreen() {
           tintColor={colors.cosmic.purple}
         />
       }
+      showsVerticalScrollIndicator={false}
     >
-      {/* Theme Selector Section */}
-      <View style={styles.themeContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.themeScrollContent}
-        >
-          {themes.map((theme) => (
-            <TouchableOpacity
-              key={theme.id}
-              style={[
-                styles.themeButton,
-                selectedTheme === theme.id && styles.themeButtonActive
-              ]}
-              onPress={() => setSelectedTheme(theme.id)}
-            >
-              {theme.icon}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* User Avatar */}
-        <TouchableOpacity style={styles.avatarContainer}>
-          <LinearGradient
-            colors={[colors.cosmic.purple, colors.cosmic.pink]}
-            style={styles.avatarGradient}
-          >
-            <Text style={styles.avatarText}>{getUserInitial()}</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-
-      {/* Title Section */}
-      <View style={styles.titleSection}>
+      {/* Compact Header with gradient tagline */}
+      <View style={styles.header}>
         <LinearGradient
           colors={[colors.cosmic.purple, colors.cosmic.pink, colors.cosmic.cyan]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={styles.titleGradient}
+          style={styles.taglineGradient}
         >
-          <Text style={styles.titleText}>Cosmic Space</Text>
+          <Text style={styles.tagline}>Align your actions with the cosmos</Text>
         </LinearGradient>
-        <Text style={styles.subtitle}>Align your actions with the cosmos</Text>
       </View>
 
-      {/* Feature Grid */}
-      <View style={styles.featureContainer}>
-        <View style={styles.featureGrid}>
-          {features.map((feature) => (
-            <TouchableOpacity
-              key={feature.id}
-              style={styles.featureCard}
-              onPress={feature.onPress}
-              activeOpacity={0.7}
-            >
-              <LinearGradient
-                colors={[feature.color + '20', feature.color + '10']}
-                style={styles.featureGradient}
-              >
-                <View style={styles.featureIconContainer}>
-                  {feature.icon}
-                </View>
-                <Text style={[styles.featureTitle, { color: feature.color }]}>{feature.title}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Current Priority */}
-      {currentPriority && (
-        <PrismCard style={styles.priorityCard}>
-          <View style={styles.priorityHeader}>
-            <Text style={styles.priorityLabel}>Current Priority</Text>
-            <View style={styles.priorityBadge}>
-              <Text style={styles.priorityBadgeText}>SUPERNOVA</Text>
+      {/* Quick Actions Grid - More prominent */}
+      <View style={styles.quickActions}>
+        {features.map((feature) => (
+          <TouchableOpacity
+            key={feature.id}
+            style={styles.actionCard}
+            onPress={feature.onPress}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.actionIconContainer, { backgroundColor: feature.color + '15' }]}>
+              {feature.icon}
             </View>
-          </View>
-          <Text style={styles.priorityTitle}>{currentPriority.title}</Text>
-          <Text style={styles.priorityProject}>{currentPriority.projectName}</Text>
-        </PrismCard>
+            <Text style={styles.actionTitle}>{feature.title}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Current Priority - More compact */}
+      {currentPriority && (
+        <TouchableOpacity
+          style={styles.priorityCard}
+          onPress={() => navigation.navigate('TaskDetail', {
+            taskId: currentPriority.id,
+            projectId: currentPriority.projectId
+          })}
+          activeOpacity={0.9}
+        >
+          <LinearGradient
+            colors={[colors.priority.supernova + '20', colors.priority.supernova + '10']}
+            style={styles.priorityGradient}
+          >
+            <View style={styles.priorityContent}>
+              <View style={styles.priorityLeft}>
+                <View style={styles.priorityHeader}>
+                  <Zap size={16} color={colors.priority.supernova} />
+                  <Text style={styles.priorityLabel}>CURRENT PRIORITY</Text>
+                </View>
+                <Text style={styles.priorityTitle} numberOfLines={2}>{currentPriority.title}</Text>
+                <Text style={styles.priorityProject}>{currentPriority.projectName}</Text>
+              </View>
+              <View style={styles.priorityBadge}>
+                <Text style={styles.priorityBadgeText}>SUPERNOVA</Text>
+              </View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       )}
 
-      {/* Quick Stats */}
+      {/* Stats Overview - Redesigned */}
       <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{projectsCount}</Text>
-          <Text style={styles.statLabel}>Projects</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{tasksCount}</Text>
-          <Text style={styles.statLabel}>Active Tasks</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{referencesCount}</Text>
-          <Text style={styles.statLabel}>References</Text>
+        <Text style={styles.sectionTitle}>Overview</Text>
+        <View style={styles.statsGrid}>
+          <TouchableOpacity
+            style={styles.statCard}
+            onPress={() => tabNavigation.navigate('Projects')}
+            activeOpacity={0.8}
+          >
+            <View style={styles.statIconContainer}>
+              <FolderOpen size={20} color={colors.cosmic.purple} />
+            </View>
+            <Text style={styles.statValue}>{projectsCount}</Text>
+            <Text style={styles.statLabel}>Projects</Text>
+            <View style={styles.statIndicator}>
+              <TrendingUp size={12} color={colors.cosmic.green} />
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <ListTodo size={20} color={colors.cosmic.cyan} />
+            </View>
+            <Text style={styles.statValue}>{activeTasks}</Text>
+            <Text style={styles.statLabel}>Active</Text>
+            <Text style={styles.statSubLabel}>{tasksCount} total</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconContainer}>
+              <Code size={20} color={colors.cosmic.amber} />
+            </View>
+            <Text style={styles.statValue}>{referencesCount}</Text>
+            <Text style={styles.statLabel}>Scrolls</Text>
+            <View style={styles.statIndicator}>
+              <TrendingUp size={12} color={colors.cosmic.green} />
+            </View>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -315,6 +277,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background.primary,
   },
+  scrollContent: {
+    paddingBottom: 24,
+  },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -324,162 +289,155 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text.secondary,
   },
-  themeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  header: {
+    paddingTop: 8,
+    paddingBottom: 16,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: colors.background.secondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.ui.border,
   },
-  themeScrollContent: {
-    paddingRight: 60, // Space for avatar
-  },
-  themeButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.background.tertiary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  themeButtonActive: {
-    borderColor: colors.cosmic.purple,
-  },
-  avatarContainer: {
-    position: 'absolute',
-    right: 16,
-    top: 12,
-  },
-  avatarGradient: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    color: colors.text.primary,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  titleSection: {
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-    alignItems: 'center',
-  },
-  titleGradient: {
-    paddingHorizontal: 4,
+  taglineGradient: {
     paddingVertical: 2,
-    borderRadius: 8,
-    marginBottom: 8,
+    paddingHorizontal: 4,
+    borderRadius: 4,
   },
-  titleText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: 'transparent',
-    backgroundClip: 'text',
+  tagline: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text.primary,
+    textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 16,
-    color: colors.text.secondary,
-  },
-  featureContainer: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  featureGrid: {
+  quickActions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
+    marginBottom: 20,
+    gap: 12,
   },
-  featureCard: {
-    width: (width - 32 - 48) / 4, // 4 columns
-    aspectRatio: 1,
-    marginBottom: 16,
-  },
-  featureGradient: {
-    flex: 1,
-    borderRadius: 20,
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  actionCard: {
+    width: (width - 48) / 2, // 2 columns with gap
     backgroundColor: colors.background.secondary,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.ui.border + '30',
   },
-  featureIconContainer: {
-    marginBottom: 4,
-  },
-  featureTitle: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  priorityCard: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-  },
-  priorityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  actionIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
   },
+  actionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  priorityCard: {
+    marginHorizontal: 16,
+    marginBottom: 20,
+  },
+  priorityGradient: {
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.priority.supernova + '30',
+  },
+  priorityContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  priorityLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  priorityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 6,
+  },
   priorityLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.text.secondary,
     textTransform: 'uppercase',
+    fontWeight: '600',
+  },
+  priorityTitle: {
+    fontSize: 16,
+    color: colors.text.primary,
+    fontWeight: '600',
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  priorityProject: {
+    fontSize: 13,
+    color: colors.text.secondary,
   },
   priorityBadge: {
     backgroundColor: colors.priority.supernova,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   priorityBadgeText: {
     fontSize: 10,
     color: colors.text.primary,
     fontWeight: 'bold',
   },
-  priorityTitle: {
+  sectionTitle: {
     fontSize: 18,
-    color: colors.text.primary,
     fontWeight: '600',
-    marginBottom: 4,
-  },
-  priorityProject: {
-    fontSize: 14,
-    color: colors.text.secondary,
+    color: colors.text.primary,
+    marginBottom: 12,
   },
   statsContainer: {
-    flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingBottom: 24,
+  },
+  statsGrid: {
+    flexDirection: 'row',
     gap: 12,
   },
   statCard: {
     flex: 1,
     backgroundColor: colors.background.secondary,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.ui.border,
+    borderColor: colors.ui.border + '30',
+    position: 'relative',
+  },
+  statIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: colors.background.tertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: colors.cosmic.purple,
-    marginBottom: 4,
+    color: colors.text.primary,
+    marginBottom: 2,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.text.secondary,
+    fontWeight: '500',
+  },
+  statSubLabel: {
+    fontSize: 11,
+    color: colors.text.muted,
+    marginTop: 2,
+  },
+  statIndicator: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
   },
 });

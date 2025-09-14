@@ -31,6 +31,7 @@ export const colors = {
     blue: '#3b82f6',
     cyan: '#06b6d4',
     amber: '#f59e0b',
+    green: '#10b981',
   },
   
   // Priority colors

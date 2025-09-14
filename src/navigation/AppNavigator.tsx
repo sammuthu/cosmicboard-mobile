@@ -60,7 +60,7 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <Home color={color} size={size} />
           ),
-          headerTitle: 'Cosmic Space',
+          headerShown: false,
         }}
       />
       <Tab.Screen
