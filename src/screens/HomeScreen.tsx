@@ -23,7 +23,7 @@ import {
   Users,
   ArrowRight,
 } from 'lucide-react-native';
-import { colors } from '../styles/colors';
+import { useTheme } from '../contexts/ThemeContext';
 import apiService from '../services/api';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
@@ -33,6 +33,7 @@ const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [priorityTasks, setPriorityTasks] = useState<any[]>([]);
@@ -104,7 +105,7 @@ export default function HomeScreen() {
           action: 'completed',
           target: 'Setup authentication',
           time: '2h ago',
-          icon: <CheckCircle size={14} color={colors.status.completed} />,
+          icon: <CheckCircle size={14} color={theme.colors.status.completed} />,
         },
         {
           id: '2',
@@ -112,7 +113,7 @@ export default function HomeScreen() {
           action: 'shared',
           target: 'AI Assistant project',
           time: '5h ago',
-          icon: <Users size={14} color={colors.cosmic.cyan} />,
+          icon: <Users size={14} color={theme.colors.cosmic.cyan} />,
         },
       ]);
     } catch (error) {
@@ -134,21 +135,21 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={colors.cosmic.purple} />
+      <View style={[styles.container, styles.centerContent, { backgroundColor: theme.colors.background.primary }]}>
+        <ActivityIndicator size="large" color={theme.colors.cosmic.purple} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.cosmic.purple}
+            tintColor={theme.colors.cosmic.purple}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -160,33 +161,33 @@ export default function HomeScreen() {
           contentContainerStyle={styles.statsScroll}
         >
           <LinearGradient
-            colors={[colors.cosmic.purple + '20', colors.cosmic.purple + '10']}
+            colors={[theme.colors.cosmic.purple + '20', theme.colors.cosmic.purple + '10']}
             style={styles.statCard}
           >
             <View style={styles.statIconBox}>
-              <TrendingUp size={18} color={colors.cosmic.purple} />
+              <TrendingUp size={18} color={theme.colors.cosmic.purple} />
             </View>
             <Text style={styles.statNumber}>{stats.projects}</Text>
             <Text style={styles.statLabel}>Projects</Text>
           </LinearGradient>
 
           <LinearGradient
-            colors={[colors.cosmic.cyan + '20', colors.cosmic.cyan + '10']}
+            colors={[theme.colors.cosmic.cyan + '20', theme.colors.cosmic.cyan + '10']}
             style={styles.statCard}
           >
             <View style={styles.statIconBox}>
-              <Zap size={18} color={colors.cosmic.cyan} />
+              <Zap size={18} color={theme.colors.cosmic.cyan} />
             </View>
             <Text style={styles.statNumber}>{stats.activeTasks}</Text>
             <Text style={styles.statLabel}>Active</Text>
           </LinearGradient>
 
           <LinearGradient
-            colors={[colors.status.completed + '20', colors.status.completed + '10']}
+            colors={[theme.colors.status.completed + '20', theme.colors.status.completed + '10']}
             style={styles.statCard}
           >
             <View style={styles.statIconBox}>
-              <CheckCircle size={18} color={colors.status.completed} />
+              <CheckCircle size={18} color={theme.colors.status.completed} />
             </View>
             <Text style={styles.statNumber}>{stats.completedToday}</Text>
             <Text style={styles.statLabel}>Today</Text>
@@ -198,10 +199,10 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <LinearGradient
-                colors={[colors.cosmic.purple, colors.cosmic.pink]}
+                colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
                 style={styles.sectionIcon}
               >
-                <Zap size={16} color={colors.text.primary} />
+                <Zap size={16} color={theme.colors.text.primary} />
               </LinearGradient>
               <Text style={styles.sectionTitle}>Priority</Text>
             </View>
@@ -216,19 +217,19 @@ export default function HomeScreen() {
                 activeOpacity={0.9}
               >
                 <LinearGradient
-                  colors={[colors.background.secondary, colors.background.tertiary]}
+                  colors={[theme.colors.background.secondary, theme.colors.background.tertiary]}
                   style={styles.taskCard}
                 >
                   <View style={styles.taskContent}>
                     <View style={[
                       styles.priorityDot,
-                      { backgroundColor: task.priority === 'SUPERNOVA' ? colors.priority.supernova : colors.priority.stellar }
+                      { backgroundColor: task.priority === 'SUPERNOVA' ? theme.colors.priority.supernova : theme.colors.priority.stellar }
                     ]} />
                     <View style={styles.taskInfo}>
                       <Text style={styles.taskTitle} numberOfLines={1}>{task.title}</Text>
                       <Text style={styles.taskProject}>{task.projectName}</Text>
                     </View>
-                    <ArrowRight size={16} color={colors.text.muted} />
+                    <ArrowRight size={16} color={theme.colors.text.muted} />
                   </View>
                 </LinearGradient>
               </TouchableOpacity>
@@ -240,10 +241,10 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <LinearGradient
-              colors={[colors.cosmic.cyan, colors.cosmic.blue]}
+              colors={[theme.colors.cosmic.cyan, theme.colors.cosmic.blue]}
               style={styles.sectionIcon}
             >
-              <Activity size={16} color={colors.text.primary} />
+              <Activity size={16} color={theme.colors.text.primary} />
             </LinearGradient>
             <Text style={styles.sectionTitle}>Activity</Text>
           </View>
@@ -281,10 +282,10 @@ export default function HomeScreen() {
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={[colors.cosmic.purple, colors.cosmic.pink]}
+          colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
           style={styles.fabGradient}
         >
-          <Plus size={24} color={colors.text.primary} />
+          <Plus size={24} color={theme.colors.text.primary} />
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -294,7 +295,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
   },
   scrollContent: {
     paddingBottom: 100,
@@ -315,13 +315,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: colors.ui.border + '20',
   },
   statIconBox: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: colors.background.primary + '50',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -329,12 +327,10 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 11,
-    color: colors.text.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -358,14 +354,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text.primary,
     letterSpacing: 0.3,
   },
   taskCard: {
     borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: colors.ui.border + '20',
     overflow: 'hidden',
   },
   taskContent: {
@@ -385,19 +379,15 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 15,
     fontWeight: '500',
-    color: colors.text.primary,
     marginBottom: 2,
   },
   taskProject: {
     fontSize: 12,
-    color: colors.text.muted,
   },
   activityCard: {
-    backgroundColor: colors.background.secondary,
-    borderRadius: 12,
+    // backgroundColor set dynamically    borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: colors.ui.border + '20',
   },
   activityItem: {
     flexDirection: 'row',
@@ -406,13 +396,13 @@ const styles = StyleSheet.create({
   },
   activityBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.ui.border + '15',
+    // borderBottomColor set dynamicallyui.border + '15',
   },
   activityIcon: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.background.tertiary,
+    // backgroundColor set dynamicallybackground.tertiary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -421,20 +411,19 @@ const styles = StyleSheet.create({
   },
   activityLine: {
     fontSize: 13,
-    color: colors.text.secondary,
+    // color set dynamicallytext.secondary,
     lineHeight: 18,
   },
   activityUser: {
     fontWeight: '600',
-    color: colors.text.primary,
+    // color set dynamicallytext.primary,
   },
   activityTarget: {
-    color: colors.cosmic.purple,
+    // color set dynamicallycosmic.purple,
   },
   activityTime: {
     fontSize: 11,
-    color: colors.text.muted,
-    marginTop: 2,
+    // color set dynamically    marginTop: 2,
   },
   fab: {
     position: 'absolute',
@@ -447,7 +436,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: colors.cosmic.purple,
+    // shadowColor set dynamicallycosmic.purple,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

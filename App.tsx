@@ -6,6 +6,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import AuthScreen from './src/screens/AuthScreen';
 import authService from './src/services/auth.service';
 import { colors } from './src/styles/colors';
+import { ThemeProvider } from './src/contexts/ThemeContext';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -68,12 +69,14 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
-      {isAuthenticated ? (
-        <AppNavigator />
-      ) : (
-        <AuthScreen onAuthSuccess={handleAuthSuccess} />
-      )}
+      <ThemeProvider>
+        <StatusBar style="light" />
+        {isAuthenticated ? (
+          <AppNavigator />
+        ) : (
+          <AuthScreen onAuthSuccess={handleAuthSuccess} />
+        )}
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

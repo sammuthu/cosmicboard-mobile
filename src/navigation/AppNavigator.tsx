@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucide-react-native';
-import { colors } from '../styles/colors';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Import screens (we'll create these next)
 import HomeScreen from '../screens/HomeScreen';
@@ -36,22 +36,23 @@ const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function MainTabs() {
+  const { theme } = useTheme();
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: colors.background.secondary,
-          borderTopColor: colors.ui.border,
+          backgroundColor: theme.colors.background.secondary,
+          borderTopColor: theme.colors.ui.border,
           borderTopWidth: 1,
         },
-        tabBarActiveTintColor: colors.cosmic.purple,
-        tabBarInactiveTintColor: colors.text.muted,
+        tabBarActiveTintColor: theme.colors.cosmic.purple,
+        tabBarInactiveTintColor: theme.colors.text.muted,
         headerStyle: {
-          backgroundColor: colors.background.secondary,
+          backgroundColor: theme.colors.background.secondary,
           shadowColor: 'transparent',
           elevation: 0,
         },
-        headerTintColor: colors.text.primary,
+        headerTintColor: theme.colors.text.primary,
       }}
     >
       <Tab.Screen
@@ -64,19 +65,19 @@ function MainTabs() {
           ),
           header: () => (
             <LinearGradient
-              colors={[colors.background.secondary, colors.background.primary]}
-              style={styles.header}
+              colors={[theme.colors.background.secondary, theme.colors.background.primary]}
+              style={[styles.header, { borderBottomColor: theme.colors.ui.border + '30' }]}
             >
               <View style={styles.headerContent}>
                 <LinearGradient
-                  colors={[colors.cosmic.purple, colors.cosmic.pink, colors.cosmic.cyan]}
+                  colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink, theme.colors.cosmic.cyan]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={styles.titleGradient}
                 >
-                  <Text style={styles.headerTitle}>Cosmic Space</Text>
+                  <Text style={[styles.headerTitle, { color: theme.colors.text.primary }]}>Cosmic Space</Text>
                 </LinearGradient>
-                <Text style={styles.headerSubtitle}>Align your actions with the cosmos</Text>
+                <Text style={[styles.headerSubtitle, { color: theme.colors.text.secondary }]}>Align your actions with the cosmos</Text>
               </View>
             </LinearGradient>
           ),
@@ -122,7 +123,6 @@ const styles = StyleSheet.create({
     paddingTop: 44, // Status bar height
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.ui.border + '30',
   },
   headerContent: {
     alignItems: 'center',
@@ -136,29 +136,28 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: colors.text.primary,
     letterSpacing: 0.5,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: colors.text.secondary,
     opacity: 0.8,
   },
 });
 
 export default function AppNavigator() {
+  const { theme } = useTheme();
   return (
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
           headerStyle: {
-            backgroundColor: colors.background.secondary,
+            backgroundColor: theme.colors.background.secondary,
             shadowColor: 'transparent',
             elevation: 0,
           },
-          headerTintColor: colors.text.primary,
+          headerTintColor: theme.colors.text.primary,
           cardStyle: {
-            backgroundColor: colors.background.primary,
+            backgroundColor: theme.colors.background.primary,
           },
         }}
       >
