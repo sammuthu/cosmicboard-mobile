@@ -29,13 +29,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'MainTabs'>;
 
-const themeIcons: Record<string, any> = {
-  cosmic: Sparkles,
-  nebula: Moon,
-  stellar: Zap,
-  aurora: Sun,
-  quantum: Sparkles,
-  daylight: Sun,
+const themeEmojis: Record<string, string> = {
+  cosmic: '🌙',      // Moon - Dark cosmic theme
+  sunrise: '☀️',     // Sun - Early morning/sunrise theme
+  daylight: '🌞',    // Bright sun - Full daylight theme
+  nebula: '☄️',      // Comet - Nebula theme
+  stellar: '🌍',     // Earth - Stellar/earth theme
+  quantum: '🚀',     // Rocket - Quantum/space theme
+  aurora: '🪐',      // Saturn - Aurora theme
+  sparkle: '✨',     // Sparkles - Sparkle theme
 };
 
 export default function SettingsScreen() {
@@ -66,7 +68,7 @@ export default function SettingsScreen() {
 
   const renderThemeOption = (themeKey: string) => {
     const themeOption = availableThemes[themeKey as keyof typeof availableThemes];
-    const Icon = themeIcons[themeKey] || Sparkles;
+    const emoji = themeEmojis[themeKey] || '✨';
     const isSelected = themeName === themeKey;
 
     return (
@@ -95,7 +97,7 @@ export default function SettingsScreen() {
             <View style={[styles.themeAccent, { backgroundColor: themeOption.colors.cosmic.cyan }]} />
           </View>
           <View style={styles.themeInfo}>
-            <Icon size={16} color={theme.colors.text.secondary} />
+            <Text style={styles.themeEmoji}>{emoji}</Text>
             <Text style={[styles.themeName, { color: theme.colors.text.primary }]}>
               {themeKey.charAt(0).toUpperCase() + themeKey.slice(1)}
             </Text>
@@ -304,6 +306,9 @@ const styles = StyleSheet.create({
   themeName: {
     fontSize: 12,
     fontWeight: '500',
+  },
+  themeEmoji: {
+    fontSize: 16,
   },
   checkIcon: {
     position: 'absolute',

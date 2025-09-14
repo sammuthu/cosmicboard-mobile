@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type ThemeName = 'cosmic' | 'nebula' | 'stellar' | 'aurora' | 'quantum' | 'daylight';
+export type ThemeName = 'cosmic' | 'sunrise' | 'daylight' | 'nebula' | 'stellar' | 'quantum' | 'aurora' | 'sparkle';
 
 export interface Theme {
   name: ThemeName;
@@ -80,6 +80,45 @@ const themes: Record<ThemeName, Theme> = {
       ui: {
         border: '#374151',
         divider: '#4b5563',
+      },
+    },
+  },
+  sunrise: {
+    name: 'sunrise',
+    colors: {
+      background: {
+        primary: '#451a03',
+        secondary: '#78350f',
+        tertiary: '#92400e',
+        card: '#78350f',
+        elevated: '#92400e',
+      },
+      text: {
+        primary: '#fef3c7',
+        secondary: '#fde68a',
+        muted: '#fbbf24',
+      },
+      cosmic: {
+        purple: '#c084fc',
+        pink: '#f9a8d4',
+        blue: '#60a5fa',
+        cyan: '#22d3ee',
+        amber: '#fbbf24',
+        green: '#34d399',
+      },
+      priority: {
+        supernova: '#fb923c',
+        stellar: '#fbbf24',
+        nebula: '#fde047',
+      },
+      status: {
+        active: '#fbbf24',
+        completed: '#fde047',
+        deleted: '#fb923c',
+      },
+      ui: {
+        border: '#b45309',
+        divider: '#d97706',
       },
     },
   },
@@ -275,6 +314,45 @@ const themes: Record<ThemeName, Theme> = {
       ui: {
         border: '#e2e8f0',
         divider: '#cbd5e1',
+      },
+    },
+  },
+  sparkle: {
+    name: 'sparkle',
+    colors: {
+      background: {
+        primary: '#4c1d95',
+        secondary: '#5b21b6',
+        tertiary: '#6d28d9',
+        card: '#5b21b6',
+        elevated: '#6d28d9',
+      },
+      text: {
+        primary: '#fdf4ff',
+        secondary: '#e9d5ff',
+        muted: '#c084fc',
+      },
+      cosmic: {
+        purple: '#d8b4fe',
+        pink: '#f9a8d4',
+        blue: '#93c5fd',
+        cyan: '#67e8f9',
+        amber: '#fde047',
+        green: '#86efac',
+      },
+      priority: {
+        supernova: '#f9a8d4',
+        stellar: '#fde047',
+        nebula: '#d8b4fe',
+      },
+      status: {
+        active: '#d8b4fe',
+        completed: '#86efac',
+        deleted: '#f9a8d4',
+      },
+      ui: {
+        border: '#7c3aed',
+        divider: '#8b5cf6',
       },
     },
   },
