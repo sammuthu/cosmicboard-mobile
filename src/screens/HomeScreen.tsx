@@ -160,51 +160,58 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.statsScroll}
         >
-          <LinearGradient
-            colors={[theme.colors.cosmic.purple + '20', theme.colors.cosmic.purple + '10']}
-            style={styles.statCard}
+          <View
+            style={[styles.statCard, {
+              backgroundColor: theme.colors.background.card,
+              borderColor: theme.colors.ui.border
+            }]}
           >
             <View style={styles.statIconBox}>
               <TrendingUp size={18} color={theme.colors.cosmic.purple} />
             </View>
-            <Text style={styles.statNumber}>{stats.projects}</Text>
-            <Text style={styles.statLabel}>Projects</Text>
-          </LinearGradient>
+            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.projects}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Projects</Text>
+          </View>
 
-          <LinearGradient
-            colors={[theme.colors.cosmic.cyan + '20', theme.colors.cosmic.cyan + '10']}
-            style={styles.statCard}
+          <View
+            style={[styles.statCard, {
+              backgroundColor: theme.colors.background.card,
+              borderColor: theme.colors.ui.border
+            }]}
           >
             <View style={styles.statIconBox}>
               <Zap size={18} color={theme.colors.cosmic.cyan} />
             </View>
-            <Text style={styles.statNumber}>{stats.activeTasks}</Text>
-            <Text style={styles.statLabel}>Active</Text>
-          </LinearGradient>
+            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.activeTasks}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Active</Text>
+          </View>
 
-          <LinearGradient
-            colors={[theme.colors.status.completed + '20', theme.colors.status.completed + '10']}
-            style={styles.statCard}
+          <View
+            style={[styles.statCard, {
+              backgroundColor: theme.colors.background.card,
+              borderColor: theme.colors.ui.border
+            }]}
           >
             <View style={styles.statIconBox}>
               <CheckCircle size={18} color={theme.colors.status.completed} />
             </View>
-            <Text style={styles.statNumber}>{stats.completedToday}</Text>
-            <Text style={styles.statLabel}>Today</Text>
-          </LinearGradient>
+            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.completedToday}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>Today</Text>
+          </View>
         </ScrollView>
 
         {/* Priority Tasks */}
         {priorityTasks.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <LinearGradient
-                colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
-                style={styles.sectionIcon}
+              <View
+                style={[styles.sectionIcon, {
+                  backgroundColor: theme.colors.background.card
+                }]}
               >
-                <Zap size={16} color={theme.colors.text.primary} />
-              </LinearGradient>
-              <Text style={styles.sectionTitle}>Priority</Text>
+                <Zap size={16} color={theme.colors.cosmic.purple} />
+              </View>
+              <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Priority</Text>
             </View>
 
             {priorityTasks.map((task) => (
@@ -216,9 +223,11 @@ export default function HomeScreen() {
                 }}
                 activeOpacity={0.9}
               >
-                <LinearGradient
-                  colors={[theme.colors.background.secondary, theme.colors.background.tertiary]}
-                  style={styles.taskCard}
+                <View
+                  style={[styles.taskCard, {
+                    backgroundColor: theme.colors.background.card,
+                    borderColor: theme.colors.ui.border
+                  }]}
                 >
                   <View style={styles.taskContent}>
                     <View style={[
@@ -226,12 +235,12 @@ export default function HomeScreen() {
                       { backgroundColor: task.priority === 'SUPERNOVA' ? theme.colors.priority.supernova : theme.colors.priority.stellar }
                     ]} />
                     <View style={styles.taskInfo}>
-                      <Text style={styles.taskTitle} numberOfLines={1}>{task.title}</Text>
-                      <Text style={styles.taskProject}>{task.projectName}</Text>
+                      <Text style={[styles.taskTitle, { color: theme.colors.text.primary }]} numberOfLines={1}>{task.title}</Text>
+                      <Text style={[styles.taskProject, { color: theme.colors.text.secondary }]}>{task.projectName}</Text>
                     </View>
                     <ArrowRight size={16} color={theme.colors.text.muted} />
                   </View>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -240,34 +249,35 @@ export default function HomeScreen() {
         {/* Activity Feed */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <LinearGradient
-              colors={[theme.colors.cosmic.cyan, theme.colors.cosmic.blue]}
-              style={styles.sectionIcon}
+            <View
+              style={[styles.sectionIcon, {
+                backgroundColor: theme.colors.background.card
+              }]}
             >
-              <Activity size={16} color={theme.colors.text.primary} />
-            </LinearGradient>
-            <Text style={styles.sectionTitle}>Activity</Text>
+              <Activity size={16} color={theme.colors.cosmic.cyan} />
+            </View>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Activity</Text>
           </View>
 
-          <View style={styles.activityCard}>
+          <View style={[styles.activityCard, { backgroundColor: theme.colors.background.card, borderColor: theme.colors.ui.border }]}>
             {recentActivity.map((activity, index) => (
               <View
                 key={activity.id}
                 style={[
                   styles.activityItem,
-                  index < recentActivity.length - 1 && styles.activityBorder
+                  index < recentActivity.length - 1 && [styles.activityBorder, { borderBottomColor: theme.colors.ui.border + '15' }]
                 ]}
               >
-                <View style={styles.activityIcon}>
+                <View style={[styles.activityIcon, { backgroundColor: theme.colors.background.tertiary }]}>
                   {activity.icon}
                 </View>
                 <View style={styles.activityText}>
-                  <Text style={styles.activityLine}>
-                    <Text style={styles.activityUser}>{activity.user}</Text>
+                  <Text style={[styles.activityLine, { color: theme.colors.text.secondary }]}>
+                    <Text style={[styles.activityUser, { color: theme.colors.text.primary }]}>{activity.user}</Text>
                     {' '}{activity.action}{' '}
-                    <Text style={styles.activityTarget}>{activity.target}</Text>
+                    <Text style={[styles.activityTarget, { color: theme.colors.cosmic.purple }]}>{activity.target}</Text>
                   </Text>
-                  <Text style={styles.activityTime}>{activity.time}</Text>
+                  <Text style={[styles.activityTime, { color: theme.colors.text.muted }]}>{activity.time}</Text>
                 </View>
               </View>
             ))}
@@ -283,7 +293,7 @@ export default function HomeScreen() {
       >
         <LinearGradient
           colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
-          style={styles.fabGradient}
+          style={[styles.fabGradient, { shadowColor: theme.colors.cosmic.purple }]}
         >
           <Plus size={24} color={theme.colors.text.primary} />
         </LinearGradient>
@@ -385,7 +395,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   activityCard: {
-    // backgroundColor set dynamically    borderRadius: 12,
+    borderRadius: 12,
     padding: 12,
     borderWidth: 1,
   },
@@ -396,13 +406,11 @@ const styles = StyleSheet.create({
   },
   activityBorder: {
     borderBottomWidth: 1,
-    // borderBottomColor set dynamicallyui.border + '15',
   },
   activityIcon: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    // backgroundColor set dynamicallybackground.tertiary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -411,19 +419,16 @@ const styles = StyleSheet.create({
   },
   activityLine: {
     fontSize: 13,
-    // color set dynamicallytext.secondary,
     lineHeight: 18,
   },
   activityUser: {
     fontWeight: '600',
-    // color set dynamicallytext.primary,
   },
   activityTarget: {
-    // color set dynamicallycosmic.purple,
   },
   activityTime: {
     fontSize: 11,
-    // color set dynamically    marginTop: 2,
+    marginTop: 2,
   },
   fab: {
     position: 'absolute',
@@ -436,7 +441,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    // shadowColor set dynamicallycosmic.purple,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

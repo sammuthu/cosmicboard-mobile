@@ -165,16 +165,16 @@ const themes: Record<ThemeName, Theme> = {
     name: 'stellar',
     colors: {
       background: {
-        primary: '#18181b',
-        secondary: '#27272a',
-        tertiary: '#3f3f46',
-        card: '#27272a',
-        elevated: '#3f3f46',
+        primary: '#09090b',
+        secondary: '#52525b',
+        tertiary: '#71717a',
+        card: '#52525b',
+        elevated: '#71717a',
       },
       text: {
         primary: '#fafafa',
-        secondary: '#a1a1aa',
-        muted: '#71717a',
+        secondary: '#e4e4e7',
+        muted: '#d4d4d8',
       },
       cosmic: {
         purple: '#c084fc',
