@@ -11,80 +11,117 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-  FolderOpen,
-  ListTodo,
-  Code,
-  Image,
-  TrendingUp,
   Zap,
+  Clock,
+  TrendingUp,
+  Star,
+  CheckCircle,
+  Plus,
+  Activity,
+  Users,
 } from 'lucide-react-native';
 import { colors } from '../styles/colors';
-import PrismCard from '../components/PrismCard';
 import apiService from '../services/api';
-import authService from '../services/auth.service';
-import { RootStackParamList, MainTabParamList } from '../navigation/AppNavigator';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'MainTabs'>;
-type TabNavigationProp = BottomTabNavigationProp<MainTabParamList>;
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const tabNavigation = useNavigation<TabNavigationProp>();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [currentPriority, setCurrentPriority] = useState<any>(null);
+  const [priorityTasks, setPriorityTasks] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [projectsCount, setProjectsCount] = useState(0);
-  const [tasksCount, setTasksCount] = useState(0);
-  const [referencesCount, setReferencesCount] = useState(0);
-  const [activeTasks, setActiveTasks] = useState(0);
+  const [completedToday, setCompletedToday] = useState(0);
 
   const loadData = async () => {
     try {
-      // Get projects count
+      // Get projects
       const projects = await apiService.getProjects();
       setProjectsCount(projects.length);
 
-      // Calculate total tasks and references
-      let totalTasks = 0;
-      let totalRefs = 0;
-      let activeTaskCount = 0;
+      // Get priority tasks from all projects
+      const allPriorityTasks: any[] = [];
+      let completedTodayCount = 0;
 
       for (const project of projects) {
-        if (project.tasksCount) totalTasks += project.tasksCount;
-        if (project.referencesCount) totalRefs += project.referencesCount;
-      }
+        try {
+          const tasks = await apiService.getTasks(project.id || project._id);
 
-      setTasksCount(totalTasks);
-      setReferencesCount(totalRefs);
+          // Get high priority tasks
+          const highPriorityTasks = tasks
+            .filter((t: any) =>
+              (t.priority === 'SUPERNOVA' || t.priority === 'STELLAR') &&
+              t.status === 'ACTIVE'
+            )
+            .map((t: any) => ({
+              ...t,
+              projectName: project.name,
+              projectId: project.id || project._id,
+            }));
 
-      // Get current priority task and count active tasks
-      if (projects.length > 0) {
-        for (const project of projects) {
-          try {
-            const tasks = await apiService.getTasks(project.id || project._id);
-            const activeTasks = tasks.filter((t: any) => t.status === 'ACTIVE');
-            activeTaskCount += activeTasks.length;
+          allPriorityTasks.push(...highPriorityTasks);
 
-            const supernovaTasks = tasks.filter((t: any) =>
-              t.priority === 'SUPERNOVA' && t.status === 'ACTIVE'
-            );
-            if (!currentPriority && supernovaTasks.length > 0) {
-              setCurrentPriority({
-                ...supernovaTasks[0],
-                projectName: project.name
-              });
+          // Count tasks completed today
+          const today = new Date().toDateString();
+          const todayCompleted = tasks.filter((t: any) => {
+            if (t.status === 'COMPLETED' && t.completedAt) {
+              return new Date(t.completedAt).toDateString() === today;
             }
-          } catch (error) {
-            console.error('Error loading tasks:', error);
-          }
+            return false;
+          });
+          completedTodayCount += todayCompleted.length;
+        } catch (error) {
+          console.error('Error loading tasks:', error);
         }
       }
-      setActiveTasks(activeTaskCount);
+
+      // Sort by priority and take top 5
+      allPriorityTasks.sort((a, b) => {
+        if (a.priority === 'SUPERNOVA' && b.priority !== 'SUPERNOVA') return -1;
+        if (a.priority !== 'SUPERNOVA' && b.priority === 'SUPERNOVA') return 1;
+        return 0;
+      });
+      setPriorityTasks(allPriorityTasks.slice(0, 5));
+      setCompletedToday(completedTodayCount);
+
+      // Mock recent activity for now
+      setRecentActivity([
+        {
+          id: '1',
+          type: 'task_completed',
+          user: 'You',
+          action: 'completed task',
+          target: 'Setup authentication flow',
+          project: 'CosmicBoard Development',
+          time: '2 hours ago',
+          icon: <CheckCircle size={16} color={colors.status.completed} />,
+        },
+        {
+          id: '2',
+          type: 'project_shared',
+          user: 'Team Member',
+          action: 'shared project',
+          target: 'AI Assistant Integration',
+          time: '5 hours ago',
+          icon: <Users size={16} color={colors.cosmic.cyan} />,
+        },
+        {
+          id: '3',
+          type: 'task_created',
+          user: 'You',
+          action: 'created task',
+          target: 'Implement real-time charts',
+          project: 'Data Visualization',
+          time: '1 day ago',
+          icon: <Plus size={16} color={colors.cosmic.purple} />,
+        },
+      ]);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -102,55 +139,22 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-
-  const features = [
-    {
-      id: 'projects',
-      title: 'Projects',
-      icon: <FolderOpen size={32} color={colors.cosmic.purple} />,
-      color: colors.cosmic.purple,
-      onPress: () => {
-        // Navigate to Projects tab
-        tabNavigation.navigate('Projects');
-      }
-    },
-    {
-      id: 'tasks',
-      title: 'Tasks',
-      icon: <ListTodo size={32} color={colors.cosmic.cyan} />,
-      color: colors.cosmic.cyan,
-      onPress: () => {
-        // For now, navigate to Projects screen since tasks are per project
-        tabNavigation.navigate('Projects');
-      }
-    },
-    {
-      id: 'scrolls',
-      title: 'Scrolls',
-      icon: <Code size={32} color={colors.cosmic.amber} />,
-      color: colors.cosmic.amber,
-      onPress: () => {
-        // For now, navigate to Projects screen since references are per project
-        navigation.getParent()?.navigate('Projects');
-      }
-    },
-    {
-      id: 'media',
-      title: 'Media',
-      icon: <Image size={32} color={colors.cosmic.pink} />,
-      color: colors.cosmic.pink,
-      onPress: () => {
-        // For now, navigate to Projects screen since media is per project
-        navigation.getParent()?.navigate('Projects');
-      }
-    },
-  ];
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'SUPERNOVA':
+        return colors.priority.supernova;
+      case 'STELLAR':
+        return colors.priority.stellar;
+      default:
+        return colors.priority.nebula;
+    }
+  };
 
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color={colors.cosmic.purple} />
-        <Text style={styles.loadingText}>Loading cosmic space...</Text>
+        <Text style={styles.loadingText}>Loading your cosmos...</Text>
       </View>
     );
   }
@@ -168,106 +172,122 @@ export default function HomeScreen() {
       }
       showsVerticalScrollIndicator={false}
     >
-      {/* Compact Header with gradient tagline */}
-      <View style={styles.header}>
-        <LinearGradient
-          colors={[colors.cosmic.purple, colors.cosmic.pink, colors.cosmic.cyan]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.taglineGradient}
-        >
-          <Text style={styles.tagline}>Align your actions with the cosmos</Text>
-        </LinearGradient>
-      </View>
-
-      {/* Quick Actions Grid - More prominent */}
-      <View style={styles.quickActions}>
-        {features.map((feature) => (
-          <TouchableOpacity
-            key={feature.id}
-            style={styles.actionCard}
-            onPress={feature.onPress}
-            activeOpacity={0.8}
-          >
-            <View style={[styles.actionIconContainer, { backgroundColor: feature.color + '15' }]}>
-              {feature.icon}
-            </View>
-            <Text style={styles.actionTitle}>{feature.title}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Current Priority - More compact */}
-      {currentPriority && (
-        <TouchableOpacity
-          style={styles.priorityCard}
-          onPress={() => navigation.navigate('TaskDetail', {
-            taskId: currentPriority.id,
-            projectId: currentPriority.projectId
-          })}
-          activeOpacity={0.9}
-        >
-          <LinearGradient
-            colors={[colors.priority.supernova + '20', colors.priority.supernova + '10']}
-            style={styles.priorityGradient}
-          >
-            <View style={styles.priorityContent}>
-              <View style={styles.priorityLeft}>
-                <View style={styles.priorityHeader}>
-                  <Zap size={16} color={colors.priority.supernova} />
-                  <Text style={styles.priorityLabel}>CURRENT PRIORITY</Text>
-                </View>
-                <Text style={styles.priorityTitle} numberOfLines={2}>{currentPriority.title}</Text>
-                <Text style={styles.priorityProject}>{currentPriority.projectName}</Text>
-              </View>
-              <View style={styles.priorityBadge}>
-                <Text style={styles.priorityBadgeText}>SUPERNOVA</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      )}
-
-      {/* Stats Overview - Redesigned */}
-      <View style={styles.statsContainer}>
-        <Text style={styles.sectionTitle}>Overview</Text>
-        <View style={styles.statsGrid}>
-          <TouchableOpacity
-            style={styles.statCard}
-            onPress={() => tabNavigation.navigate('Projects')}
-            activeOpacity={0.8}
-          >
-            <View style={styles.statIconContainer}>
-              <FolderOpen size={20} color={colors.cosmic.purple} />
-            </View>
-            <Text style={styles.statValue}>{projectsCount}</Text>
-            <Text style={styles.statLabel}>Projects</Text>
-            <View style={styles.statIndicator}>
-              <TrendingUp size={12} color={colors.cosmic.green} />
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <ListTodo size={20} color={colors.cosmic.cyan} />
-            </View>
-            <Text style={styles.statValue}>{activeTasks}</Text>
-            <Text style={styles.statLabel}>Active</Text>
-            <Text style={styles.statSubLabel}>{tasksCount} total</Text>
+      {/* Quick Stats */}
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <View style={styles.statIcon}>
+            <TrendingUp size={20} color={colors.cosmic.purple} />
           </View>
+          <View>
+            <Text style={styles.statValue}>{projectsCount}</Text>
+            <Text style={styles.statLabel}>Active Projects</Text>
+          </View>
+        </View>
 
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
-              <Code size={20} color={colors.cosmic.amber} />
-            </View>
-            <Text style={styles.statValue}>{referencesCount}</Text>
-            <Text style={styles.statLabel}>Scrolls</Text>
-            <View style={styles.statIndicator}>
-              <TrendingUp size={12} color={colors.cosmic.green} />
-            </View>
+        <View style={styles.statItem}>
+          <View style={styles.statIcon}>
+            <CheckCircle size={20} color={colors.status.completed} />
+          </View>
+          <View>
+            <Text style={styles.statValue}>{completedToday}</Text>
+            <Text style={styles.statLabel}>Completed Today</Text>
+          </View>
+        </View>
+
+        <View style={styles.statItem}>
+          <View style={styles.statIcon}>
+            <Star size={20} color={colors.cosmic.amber} />
+          </View>
+          <View>
+            <Text style={styles.statValue}>{priorityTasks.length}</Text>
+            <Text style={styles.statLabel}>Priority Tasks</Text>
           </View>
         </View>
       </View>
+
+      {/* Priority Tasks Section */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Zap size={20} color={colors.cosmic.purple} />
+          <Text style={styles.sectionTitle}>Priority Tasks</Text>
+        </View>
+
+        {priorityTasks.length > 0 ? (
+          priorityTasks.map((task) => (
+            <TouchableOpacity
+              key={task.id}
+              style={styles.taskCard}
+              onPress={() => navigation.navigate('TaskDetail', {
+                taskId: task.id,
+                projectId: task.projectId
+              })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.taskHeader}>
+                <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(task.priority) }]}>
+                  <Text style={styles.priorityText}>{task.priority}</Text>
+                </View>
+                <Text style={styles.taskProject}>{task.projectName}</Text>
+              </View>
+              <Text style={styles.taskTitle} numberOfLines={2}>{task.title}</Text>
+              {task.dueDate && (
+                <View style={styles.taskFooter}>
+                  <Clock size={12} color={colors.text.muted} />
+                  <Text style={styles.dueDate}>
+                    Due {new Date(task.dueDate).toLocaleDateString()}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No priority tasks</Text>
+            <Text style={styles.emptySubtext}>All caught up! 🎉</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Activity Feed */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Activity size={20} color={colors.cosmic.cyan} />
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+        </View>
+
+        {recentActivity.map((activity) => (
+          <View key={activity.id} style={styles.activityItem}>
+            <View style={styles.activityIcon}>
+              {activity.icon}
+            </View>
+            <View style={styles.activityContent}>
+              <Text style={styles.activityText}>
+                <Text style={styles.activityUser}>{activity.user}</Text>
+                {' '}{activity.action}{' '}
+                <Text style={styles.activityTarget}>{activity.target}</Text>
+              </Text>
+              {activity.project && (
+                <Text style={styles.activityProject}>{activity.project}</Text>
+              )}
+              <Text style={styles.activityTime}>{activity.time}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('ProjectDetail', { projectId: 'new' })}
+        activeOpacity={0.8}
+      >
+        <LinearGradient
+          colors={[colors.cosmic.purple, colors.cosmic.pink]}
+          style={styles.fabGradient}
+        >
+          <Plus size={28} color={colors.text.primary} />
+        </LinearGradient>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -278,7 +298,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.primary,
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 100,
   },
   centerContent: {
     justifyContent: 'center',
@@ -289,155 +309,166 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text.secondary,
   },
-  header: {
-    paddingTop: 8,
-    paddingBottom: 16,
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     paddingHorizontal: 16,
-  },
-  taglineGradient: {
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-    borderRadius: 4,
-  },
-  tagline: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text.primary,
-    textAlign: 'center',
-  },
-  quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 12,
-    marginBottom: 20,
-    gap: 12,
-  },
-  actionCard: {
-    width: (width - 48) / 2, // 2 columns with gap
+    paddingVertical: 20,
     backgroundColor: colors.background.secondary,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.ui.border + '30',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ui.border,
   },
-  actionIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  actionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text.primary,
-  },
-  priorityCard: {
-    marginHorizontal: 16,
-    marginBottom: 20,
-  },
-  priorityGradient: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.priority.supernova + '30',
-  },
-  priorityContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  priorityLeft: {
-    flex: 1,
-    marginRight: 12,
-  },
-  priorityHeader: {
+  statItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 6,
+    gap: 8,
   },
-  priorityLabel: {
-    fontSize: 11,
-    color: colors.text.secondary,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
-  priorityTitle: {
-    fontSize: 16,
-    color: colors.text.primary,
-    fontWeight: '600',
-    marginBottom: 4,
-    lineHeight: 22,
-  },
-  priorityProject: {
-    fontSize: 13,
-    color: colors.text.secondary,
-  },
-  priorityBadge: {
-    backgroundColor: colors.priority.supernova,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  priorityBadgeText: {
-    fontSize: 10,
-    color: colors.text.primary,
-    fontWeight: 'bold',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: 12,
-  },
-  statsContainer: {
-    paddingHorizontal: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.background.secondary,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.ui.border + '30',
-    position: 'relative',
-  },
-  statIconContainer: {
+  statIcon: {
     width: 36,
     height: 36,
     borderRadius: 8,
     backgroundColor: colors.background.tertiary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
   },
   statValue: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.text.primary,
-    marginBottom: 2,
   },
   statLabel: {
-    fontSize: 13,
-    color: colors.text.secondary,
-    fontWeight: '500',
-  },
-  statSubLabel: {
     fontSize: 11,
     color: colors.text.muted,
     marginTop: 2,
   },
-  statIndicator: {
+  section: {
+    paddingHorizontal: 16,
+    marginTop: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  taskCard: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.ui.border + '30',
+  },
+  taskHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  priorityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  priorityText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+  },
+  taskProject: {
+    fontSize: 12,
+    color: colors.text.secondary,
+  },
+  taskTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: colors.text.primary,
+    lineHeight: 22,
+  },
+  taskFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+  },
+  dueDate: {
+    fontSize: 12,
+    color: colors.text.muted,
+  },
+  emptyState: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: colors.text.secondary,
+    marginBottom: 4,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: colors.text.muted,
+  },
+  activityItem: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ui.border + '20',
+  },
+  activityIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.background.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  activityContent: {
+    flex: 1,
+  },
+  activityText: {
+    fontSize: 14,
+    color: colors.text.secondary,
+    lineHeight: 20,
+  },
+  activityUser: {
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  activityTarget: {
+    fontWeight: '500',
+    color: colors.cosmic.purple,
+  },
+  activityProject: {
+    fontSize: 12,
+    color: colors.text.muted,
+    marginTop: 2,
+  },
+  activityTime: {
+    fontSize: 11,
+    color: colors.text.muted,
+    marginTop: 4,
+  },
+  fab: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    bottom: 24,
+    right: 24,
+  },
+  fabGradient: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
 });

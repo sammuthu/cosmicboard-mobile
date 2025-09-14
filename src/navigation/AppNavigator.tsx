@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -60,7 +61,17 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <Home color={color} size={size} />
           ),
-          headerShown: false,
+          headerTitle: () => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text.primary }}>
+                Cosmic Space
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.text.secondary }}>
+                Align your actions with the cosmos
+              </Text>
+            </View>
+          ),
+          headerTitleAlign: 'center',
         }}
       />
       <Tab.Screen
