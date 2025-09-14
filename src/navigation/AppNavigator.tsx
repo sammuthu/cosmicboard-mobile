@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucide-react-native';
 import { colors } from '../styles/colors';
 
@@ -61,17 +62,24 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <Home color={color} size={size} />
           ),
-          headerTitle: () => (
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text.primary }}>
-                Cosmic Space
-              </Text>
-              <Text style={{ fontSize: 12, color: colors.text.secondary }}>
-                Align your actions with the cosmos
-              </Text>
-            </View>
+          header: () => (
+            <LinearGradient
+              colors={[colors.background.secondary, colors.background.primary]}
+              style={styles.header}
+            >
+              <View style={styles.headerContent}>
+                <LinearGradient
+                  colors={[colors.cosmic.purple, colors.cosmic.pink, colors.cosmic.cyan]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.titleGradient}
+                >
+                  <Text style={styles.headerTitle}>Cosmic Space</Text>
+                </LinearGradient>
+                <Text style={styles.headerSubtitle}>Align your actions with the cosmos</Text>
+              </View>
+            </LinearGradient>
           ),
-          headerTitleAlign: 'center',
         }}
       />
       <Tab.Screen
@@ -109,6 +117,35 @@ function MainTabs() {
   );
 }
 
+const styles = StyleSheet.create({
+  header: {
+    paddingTop: 44, // Status bar height
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ui.border + '30',
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  titleGradient: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    letterSpacing: 0.5,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    opacity: 0.8,
+  },
+});
+
 export default function AppNavigator() {
   return (
     <NavigationContainer>
@@ -133,7 +170,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="ProjectDetail"
           component={ProjectDetailScreen}
-          options={{ 
+          options={{
             title: 'Project Details',
             headerBackTitle: 'Back',
           }}
@@ -141,7 +178,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="TaskDetail"
           component={TaskDetailScreen}
-          options={{ 
+          options={{
             title: 'Task Details',
             headerBackTitle: 'Back',
           }}
@@ -149,7 +186,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="ReferenceDetail"
           component={ReferenceDetailScreen}
-          options={{ 
+          options={{
             title: 'Reference Details',
             headerBackTitle: 'Back',
           }}
@@ -157,7 +194,7 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Media"
           component={MediaScreen}
-          options={{ 
+          options={{
             title: 'Media',
             headerBackTitle: 'Back',
           }}
