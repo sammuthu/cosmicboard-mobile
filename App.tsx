@@ -5,7 +5,7 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import AuthScreen from './src/screens/AuthScreen';
 import authService from './src/services/auth.service';
-import colors from './src/styles/colors';
+import { colors } from './src/styles/colors';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -18,6 +18,20 @@ export default function App() {
 
   const checkAuthStatus = async () => {
     try {
+      // Auto-login for development
+      if (__DEV__) {
+        // Simulate successful auth for development
+        const devUser = {
+          email: 'nmuthu@gmail.com',
+          name: 'Dev User',
+          id: 'dev-user-001'
+        };
+        setUser(devUser);
+        setIsAuthenticated(true);
+        setIsLoading(false);
+        return;
+      }
+
       const authenticated = authService.isAuthenticated();
       if (authenticated) {
         const storedUser = await authService.getStoredUser();
@@ -47,7 +61,7 @@ export default function App() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.accent.stellar} />
+        <ActivityIndicator size="large" color={colors.cosmic.purple} />
       </View>
     );
   }

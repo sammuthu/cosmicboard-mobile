@@ -6,6 +6,7 @@ import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucid
 import { colors } from '../styles/colors';
 
 // Import screens (we'll create these next)
+import HomeScreen from '../screens/HomeScreen';
 import ProjectsScreen from '../screens/ProjectsScreen';
 import ProjectDetailScreen from '../screens/ProjectDetailScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -23,6 +24,7 @@ export type RootStackParamList = {
 };
 
 export type MainTabParamList = {
+  Home: undefined;
   Projects: undefined;
   Search: undefined;
   Settings: undefined;
@@ -51,6 +53,17 @@ function MainTabs() {
       }}
     >
       <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <Home color={color} size={size} />
+          ),
+          headerTitle: 'Cosmic Space',
+        }}
+      />
+      <Tab.Screen
         name="Projects"
         component={ProjectsScreen}
         options={{
@@ -58,7 +71,7 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <FolderOpen color={color} size={size} />
           ),
-          headerTitle: 'CosmicBoard',
+          headerTitle: 'Projects',
         }}
       />
       <Tab.Screen

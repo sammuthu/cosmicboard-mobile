@@ -27,6 +27,25 @@ class AuthService {
 
   private async loadTokens() {
     try {
+      // In development, always use mock tokens
+      if (__DEV__) {
+        this.accessToken = 'dev-access-token-persistent';
+        this.refreshToken = 'dev-refresh-token-persistent';
+        this.tokenExpiry = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
+
+        // Store mock user if not exists
+        const storedUser = await AsyncStorage.getItem('user');
+        if (!storedUser) {
+          const mockUser = {
+            id: 'dev-user-001',
+            email: 'nmuthu@gmail.com',
+            name: 'Dev User',
+          };
+          await AsyncStorage.setItem('user', JSON.stringify(mockUser));
+        }
+        return;
+      }
+
       const stored = await AsyncStorage.getItem('auth_tokens');
       if (stored) {
         const tokens = JSON.parse(stored);

@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import authService from '../services/auth.service';
-import colors from '../styles/colors';
+import { colors } from '../styles/colors';
 
 interface AuthScreenProps {
   onAuthSuccess: (user: any) => void;
@@ -138,7 +138,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
                 disabled={isLoading}
               >
                 <LinearGradient
-                  colors={[colors.accent.nebula, colors.accent.stellar]}
+                  colors={[colors.cosmic.blue, colors.cosmic.purple]}
                   style={styles.buttonGradient}
                 >
                   {isLoading ? (
@@ -174,7 +174,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
                 disabled={isLoading}
               >
                 <LinearGradient
-                  colors={[colors.accent.nebula, colors.accent.stellar]}
+                  colors={[colors.cosmic.blue, colors.cosmic.purple]}
                   style={styles.buttonGradient}
                 >
                   {isLoading ? (
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   linkText: {
-    color: colors.accent.stellar,
+    color: colors.cosmic.amber,
     fontSize: 14,
   },
   separator: {

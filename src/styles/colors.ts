@@ -63,3 +63,5 @@ export const colors = {
     info: '#3b82f6',
   },
 };
+
+export default colors;
