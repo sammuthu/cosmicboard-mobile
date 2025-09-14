@@ -49,10 +49,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#0a0a0f',
-        secondary: '#1a1a2e',
-        tertiary: '#2a2a3e',
-        card: '#16213e',
-        elevated: '#1e2841',
+        secondary: '#3a3a4e',
+        tertiary: '#4a4a5e',
+        card: '#3a3a4e',
+        elevated: '#4a4a5e',
       },
       text: {
         primary: '#ffffff',
@@ -127,10 +127,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#0f172a',
-        secondary: '#1e293b',
-        tertiary: '#334155',
-        card: '#1e293b',
-        elevated: '#334155',
+        secondary: '#475569',
+        tertiary: '#64748b',
+        card: '#475569',
+        elevated: '#64748b',
       },
       text: {
         primary: '#f1f5f9',
@@ -205,10 +205,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#0a0e1a',
-        secondary: '#162033',
-        tertiary: '#22324d',
-        card: '#1a2842',
-        elevated: '#22324d',
+        secondary: '#364455',
+        tertiary: '#4a5a70',
+        card: '#364455',
+        elevated: '#4a5a70',
       },
       text: {
         primary: '#e0f2fe',
@@ -244,10 +244,10 @@ const themes: Record<ThemeName, Theme> = {
     colors: {
       background: {
         primary: '#120826',
-        secondary: '#1f0f3d',
-        tertiary: '#2e1855',
-        card: '#241142',
-        elevated: '#2e1855',
+        secondary: '#4a3a68',
+        tertiary: '#5e4a7d',
+        card: '#4a3a68',
+        elevated: '#5e4a7d',
       },
       text: {
         primary: '#e9d5ff',
