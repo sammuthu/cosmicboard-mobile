@@ -1,312 +1,305 @@
-# Mobile Sync Instructions - Complete Web Feature Parity
+# Mobile Sync Instructions - Theme System & Latest Features
 
 ## Overview
-This document contains comprehensive instructions to sync the mobile app with all recent web frontend changes made in the last 3 days. The mobile app must achieve feature parity with the web frontend while maintaining mobile-friendly UX patterns.
+This document contains instructions to implement the database-driven theme customization system and other recent web features in the mobile app. These are NEW features not yet in mobile that need implementation.
 
-## Recent Web Changes Summary
+## 🎨 NEW: Database-Driven Theme Customization System
 
-### 1. Homepage Redesign (Latest)
-- **Theme Selector Container**: Unified container with theme icons and user avatar
-- **User Avatar**: Positioned on the right side of theme selector, shows circular badge with user initial
-- **Title/Description**: Moved below theme selector with gradient text effects
-- **Feature Buttons**: Grid layout in rounded rectangular container with cell borders
-- **Z-index Hierarchy Fix**: Proper stacking context for dropdown menus
+### Overview
+The web app now has a comprehensive theme system that:
+- Stores 8 default themes in PostgreSQL database
+- Allows users to customize any theme's colors
+- Saves customizations per user
+- Applies themes dynamically using CSS variables (web) / style props (mobile)
+- Provides live preview during customization
 
-### 2. Authentication System
-- **Magic Link Auth**: Email-based passwordless authentication
-- **Token Storage**: Uses localStorage for auth tokens
-- **Protected Routes**: Automatic redirect to /auth when not authenticated
-- **User Context**: Global auth state management with useAuth hook
-
-### 3. Media Management System
-- **Photo Gallery**: Grid view with lightbox, upload, rename, delete
-- **Screenshot Capture**: Paste from clipboard (Cmd/Ctrl+V)
-- **PDF Viewer**: In-app viewing with zoom and navigation
-- **File Upload**: Drag-and-drop and click-to-upload
-- **Thumbnail Generation**: Automatic for images
-
-### 4. Backend Integration
-- **API Endpoints**: All at http://localhost:7779
-- **External Backend**: NEXT_PUBLIC_USE_EXTERNAL_BACKEND=true
-- **Database**: PostgreSQL via Prisma (no MongoDB)
-- **Media Storage**: Local filesystem at /uploads
-
-### 5. UI/UX Patterns
-- **PrismCard Design**: Glassmorphic cards with gradient borders
-- **Cosmic Themes**: 5+ themes with dynamic animations
-- **Keyboard Shortcuts**: Cmd/Ctrl+K for search, Cmd/Ctrl+V for screenshots
-- **Toast Notifications**: Success/error feedback
-- **Loading States**: Skeleton loaders and spinners
-
-## Mobile Implementation Requirements
-
-### 1. Core Setup
-```javascript
-// Environment variables needed
-BACKEND_URL=http://localhost:7779
-USE_EXTERNAL_BACKEND=true
-DATABASE_URL=postgresql://cosmicuser:cosmic123!@localhost:5432/cosmicboard
+### Backend API Endpoints (Already Available)
+```
+GET  /api/themes/templates           - Get all theme templates
+GET  /api/themes/templates/:id       - Get specific theme template
+GET  /api/themes/user/active         - Get user's active theme (with customizations merged)
+GET  /api/themes/user/customizations - Get all user customizations
+POST /api/themes/user/customize      - Save theme customization
+POST /api/themes/user/set-active     - Set active theme
+DELETE /api/themes/user/customizations/:id - Delete customization
 ```
 
-### 2. Authentication Flow
-- Implement magic link authentication screen
-- Store tokens in AsyncStorage (mobile equivalent of localStorage)
-- Create AuthContext provider wrapping the app
-- Protected navigation routes
+### Theme Data Structure
+```typescript
+interface ThemeTemplate {
+  id: string           // e.g., 'moon', 'sun', 'daylight'
+  name: string         // Internal name
+  displayName: string  // Display name
+  description: string
+  isDefault: boolean
+  colors: ThemeColors
+}
 
-### 3. Homepage Layout (Mobile-Optimized)
-```javascript
-// Mobile-friendly layout structure
-<ScrollView>
-  {/* Theme Selector Section */}
-  <View style={styles.themeContainer}>
-    <ScrollView horizontal>
-      {/* Theme icons */}
-    </ScrollView>
-    <TouchableOpacity style={styles.avatar}>
-      {/* User avatar with initial */}
-    </TouchableOpacity>
-  </View>
-  
-  {/* Title Section */}
-  <View style={styles.titleSection}>
-    <Text style={styles.gradientTitle}>Cosmic Space</Text>
-    <Text style={styles.subtitle}>Align your actions with the cosmos</Text>
-  </View>
-  
-  {/* Feature Grid */}
-  <View style={styles.featureGrid}>
-    {/* 2 columns on mobile */}
-  </View>
-  
-  {/* Current Priority */}
-  <CurrentPriority />
-  
-  {/* Projects List */}
-  <ProjectsList />
-</ScrollView>
-```
-
-### 4. Navigation Structure
-```javascript
-// React Navigation setup
-- Auth Stack
-  - LoginScreen (magic link)
-- Main Tab Navigator
-  - Home
-  - Projects
-  - Media
-  - Settings
-- Modal Screens
-  - Search
-  - New Project
-  - File Viewer
-```
-
-### 5. Media Features (Mobile-Specific)
-- **Photo Gallery**: Use React Native Image component with FlatList
-- **Screenshot**: Not applicable - use camera/gallery picker instead
-- **PDF Viewer**: Use react-native-pdf or WebView
-- **File Upload**: Use react-native-document-picker
-- **Image Viewer**: Use react-native-image-zoom-viewer for lightbox
-
-### 6. API Client Setup
-```javascript
-// Centralized API client
-class ApiClient {
-  constructor() {
-    this.baseURL = 'http://localhost:7779/api';
+interface ThemeColors {
+  parentBackground: {
+    from: string  // rgba or hex
+    via: string
+    to: string
   }
-  
-  async request(endpoint, options = {}) {
-    const token = await AsyncStorage.getItem('auth_token');
-    return fetch(`${this.baseURL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        ...options.headers
-      }
-    });
+  prismCard: {
+    background: {
+      from: string
+      via: string
+      to: string
+    }
+    glowGradient: {
+      from: string
+      via: string
+      to: string
+    }
+    borderColor: string
+  }
+  text: {
+    primary: string
+    secondary: string
+    accent: string
+    muted: string
+  }
+  buttons: {
+    primary: {
+      background: string
+      hover: string
+      text: string
+    }
+    secondary: {
+      background: string
+      hover: string
+      text: string
+    }
+  }
+  status: {
+    success: string
+    warning: string
+    error: string
+    info: string
   }
 }
 ```
 
-### 7. Component Mapping (Web to Mobile)
+### Mobile Implementation Requirements
 
-| Web Component | Mobile Component | Implementation Notes |
-|--------------|-----------------|---------------------|
-| PrismCard | View with LinearGradient border | Use react-native-linear-gradient |
-| UserAvatar | TouchableOpacity with Text | Circular view with initial |
-| ThemeSelector | Horizontal ScrollView | Scrollable theme icons |
-| SearchModal | Modal with TextInput | Full-screen modal |
-| FileUpload | DocumentPicker | Native file selection |
-| PDFViewer | react-native-pdf | Full-screen viewer |
-| PhotoGallery | FlatList with Image | Grid layout with 2 columns |
-| Toast | react-native-toast-message | Native toast notifications |
-| Dropdown Menu | ActionSheet or Modal | iOS/Android native patterns |
-
-### 8. Styling Guidelines
+#### 1. ThemeContext Provider
 ```javascript
-// Mobile-specific considerations
-- Use StyleSheet.create() for performance
-- Responsive sizing with Dimensions API
-- Platform-specific styles (Platform.OS)
-- SafeAreaView for notch/status bar
-- KeyboardAvoidingView for forms
-- Proper touch target sizes (min 44x44)
+// src/contexts/ThemeContext.js
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiClient } from '../services/api';
+
+const ThemeContext = createContext({});
+
+export function ThemeProvider({ children }) {
+  const [activeTheme, setActiveTheme] = useState(null);
+  const [colors, setColors] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadTheme = async () => {
+    try {
+      const theme = await apiClient.get('/themes/user/active');
+      setActiveTheme(theme);
+      setColors(theme.colors);
+      // Apply theme to React Native components
+      applyThemeToApp(theme.colors);
+    } catch (error) {
+      // Load default theme for non-authenticated users
+      const templates = await apiClient.get('/themes/templates');
+      const defaultTheme = templates.find(t => t.id === 'moon') || templates[0];
+      setActiveTheme(defaultTheme);
+      setColors(defaultTheme.colors);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshTheme = async () => {
+    await loadTheme();
+  };
+
+  return (
+    <ThemeContext.Provider value={{ activeTheme, colors, loading, refreshTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export const useTheme = () => useContext(ThemeContext);
 ```
 
-### 9. State Management
-- Use Context API for global state (auth, theme)
-- Local component state with useState
-- Data fetching with custom hooks
-- Optimistic updates for better UX
-
-### 10. Performance Optimizations
-- FlatList for long lists
-- Image caching with FastImage
-- Lazy loading for heavy components
-- Memoization with useMemo/useCallback
-- Proper key props for lists
-
-## Testing Requirements
-
-### Android Testing (start-android.sh)
-1. Launch Android emulator automatically
-2. Take screenshots of each screen
-3. Verify all features work
-4. Check for console errors
-5. Test on different screen sizes
-6. Verify keyboard interactions
-7. Test offline behavior
-
-### iOS Testing (start.sh)
-1. Launch iOS simulator automatically
-2. Take screenshots of each screen
-3. Verify all features work
-4. Test gesture navigation
-5. Verify safe area handling
-6. Test on iPhone and iPad
-
-## File Structure Updates Needed
-
-```
-cosmicboard-mobile/
-├── src/
-│   ├── screens/
-│   │   ├── auth/
-│   │   │   └── LoginScreen.js (magic link)
-│   │   ├── home/
-│   │   │   └── HomeScreen.js (new layout)
-│   │   ├── media/
-│   │   │   ├── PhotoGalleryScreen.js
-│   │   │   └── PDFViewerScreen.js
-│   │   └── projects/
-│   │       └── ProjectsScreen.js
-│   ├── components/
-│   │   ├── UserAvatar.js
-│   │   ├── ThemeSelector.js
-│   │   ├── PrismCard.js
-│   │   ├── CurrentPriority.js
-│   │   └── FeatureGrid.js
-│   ├── contexts/
-│   │   ├── AuthContext.js
-│   │   └── ThemeContext.js
-│   ├── services/
-│   │   └── api.js (backend integration)
-│   └── navigation/
-│       └── AppNavigator.js
-├── start-android.sh (no DB migrations)
-└── start.sh (no DB migrations)
+#### 2. Theme Gallery Screen
+```javascript
+// src/screens/themes/ThemeGalleryScreen.js
+// Features needed:
+// - Grid of theme cards (2 columns on mobile)
+// - Each card shows theme preview with gradient background
+// - Color swatches preview
+// - "Active" badge for current theme
+// - "Customized" badge for themes with user customizations
+// - Apply button to set theme as active
+// - Entire card clickable to open customization
+// - Loading states and error handling
 ```
 
-## Dependencies to Add
+#### 3. Theme Customization Screen
+```javascript
+// src/screens/themes/ThemeCustomizationScreen.js
+// Features needed:
+// - Tab navigation for color sections (Background, Cards, Text, Buttons, Status)
+// - Color pickers for each customizable color
+// - Support for both hex and rgba formats
+// - Live preview of theme changes
+// - Save button to persist customizations
+// - Reset button to restore defaults (with silent deletion)
+// - Navigation back to gallery after reset
+```
+
+#### 4. Home Screen Theme Selector Integration
+```javascript
+// Update existing HomeScreen.js
+// - Sync theme selector with backend active theme
+// - Apply theme when icon is selected
+// - Show loading state during theme application
+// - Persist selection to backend for authenticated users
+// - Fall back to AsyncStorage for non-authenticated users
+```
+
+#### 5. Color Picker Component
+```javascript
+// src/components/ColorPicker.js
+// Use react-native-color-picker or similar library
+// Features:
+// - Convert between hex and rgba
+// - Preserve alpha values
+// - Show color preview square
+// - Text input for manual entry
+```
+
+## 🔧 Additional Updates Needed
+
+### 1. PrismCard Component Updates
+- Apply theme colors from ThemeContext instead of hardcoded values
+- Use LinearGradient with theme colors for backgrounds
+- Dynamic border colors from theme
+
+### 2. API Client Updates
+Add theme-related methods:
+```javascript
+// src/services/api.js
+export const themesAPI = {
+  getTemplates: () => apiClient.get('/themes/templates'),
+  getTemplate: (id) => apiClient.get(`/themes/templates/${id}`),
+  getUserActive: () => apiClient.get('/themes/user/active'),
+  getUserCustomizations: () => apiClient.get('/themes/user/customizations'),
+  saveCustomization: (themeId, colors) =>
+    apiClient.post('/themes/user/customize', { themeId, customColors: colors }),
+  setActive: (themeId) =>
+    apiClient.post('/themes/user/set-active', { themeId }),
+  deleteCustomization: (id) =>
+    apiClient.delete(`/themes/user/customizations/${id}`)
+};
+```
+
+### 3. Navigation Updates
+Add theme screens to navigation:
+```javascript
+// Theme Stack
+- ThemeGalleryScreen (list of themes)
+- ThemeCustomizationScreen (edit theme colors)
+```
+
+### 4. Deep Merge Utility
+```javascript
+// src/utils/deepMerge.js
+export const deepMerge = (target, source) => {
+  const output = { ...target };
+  for (const key in source) {
+    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      if (target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) {
+        output[key] = deepMerge(target[key], source[key]);
+      } else {
+        output[key] = source[key];
+      }
+    } else {
+      output[key] = source[key];
+    }
+  }
+  return output;
+};
+```
+
+## 🎯 Implementation Priority
+
+1. **Phase 1: Core Theme System**
+   - [ ] ThemeContext provider
+   - [ ] Theme API integration
+   - [ ] Apply theme colors to existing components
+
+2. **Phase 2: Theme Gallery**
+   - [ ] Theme gallery screen
+   - [ ] Theme cards with preview
+   - [ ] Apply theme functionality
+
+3. **Phase 3: Theme Customization**
+   - [ ] Customization screen
+   - [ ] Color pickers
+   - [ ] Save/Reset functionality
+   - [ ] Live preview
+
+4. **Phase 4: Integration**
+   - [ ] Home screen theme selector sync
+   - [ ] Update all components to use theme colors
+   - [ ] Testing and refinement
+
+## 📦 Required Dependencies
 
 ```json
 {
-  "dependencies": {
-    "react-native-linear-gradient": "^2.8.3",
-    "react-native-document-picker": "^9.1.1",
-    "react-native-pdf": "^6.7.4",
-    "react-native-image-zoom-viewer": "^3.0.1",
-    "react-native-toast-message": "^2.2.0",
-    "react-native-fast-image": "^8.6.3",
-    "@react-native-async-storage/async-storage": "^1.21.0",
-    "react-native-safe-area-context": "^4.8.2",
-    "react-native-gesture-handler": "^2.14.1",
-    "react-native-reanimated": "^3.6.1",
-    "@react-navigation/native": "^6.1.9",
-    "@react-navigation/bottom-tabs": "^6.5.11",
-    "@react-navigation/stack": "^6.3.20"
-  }
+  "react-native-color-picker": "^0.6.0",
+  "react-native-linear-gradient": "^2.8.3",
+  "react-native-vector-icons": "^10.0.0"
 }
 ```
 
-## Critical Implementation Notes
+## 🧪 Testing Checklist
 
-1. **NO Database Migrations**: The PostgreSQL database is already set up and working. Remove any migration commands from start scripts.
+- [ ] Theme templates load from backend
+- [ ] Theme application changes all UI colors
+- [ ] Customizations save to backend
+- [ ] Reset removes customizations silently
+- [ ] Theme persists across app restarts
+- [ ] Non-authenticated users can view themes
+- [ ] Authenticated users can customize themes
+- [ ] Deep merge works for nested color objects
+- [ ] Color picker handles hex/rgba conversion
+- [ ] Performance is acceptable with theme changes
 
-2. **Backend is Shared**: The backend at port 7779 is already configured for both web and mobile. No backend changes needed.
+## 🐛 Known Issues to Avoid
 
-3. **Auth Token Format**: Must match web format exactly:
-   ```json
-   {
-     "accessToken": "token",
-     "refreshToken": "token",
-     "expiresAt": "ISO date string"
-   }
-   ```
+1. **Color Format Consistency**: Always handle both hex and rgba formats
+2. **Deep Merge**: Required for nested theme color objects
+3. **Reset Button**: Must silently delete without confirmation
+4. **Theme Persistence**: Apply on app launch from backend
+5. **Navigation**: Reset should navigate back after deletion
 
-4. **API Endpoints**: All endpoints use /api prefix:
-   - POST /api/auth/magic-link
-   - GET /api/projects
-   - GET /api/tasks
-   - GET /api/media
-   - POST /api/media/upload
-   - etc.
+## 📱 Mobile-Specific Considerations
 
-5. **Error Handling**: Implement proper error boundaries and fallback UI
+1. Use `StyleSheet.create()` with theme colors
+2. Update styles dynamically when theme changes
+3. Cache theme locally for offline access
+4. Use native color picker components
+5. Optimize re-renders when theme changes
+6. Consider dark mode system preference
 
-6. **Offline Support**: Cache critical data for offline access
+## ✅ Success Criteria
 
-## Automated Testing Process
-
-The mobile implementation should:
-1. Automatically launch emulators/simulators
-2. Take screenshots at each step
-3. Detect errors from screenshots and logs
-4. Self-correct and retry until working
-5. Verify feature parity with web
-6. Ensure mobile-optimized UX
-
-## Success Criteria
-
-✅ Authentication flow works (magic link)
-✅ Homepage shows new layout with user avatar in theme selector
-✅ All theme switching works with animations
-✅ Dropdown menus have proper z-index (use native sheets)
-✅ Projects CRUD operations work
-✅ Tasks management works
-✅ Media features work (adapted for mobile)
-✅ Search functionality works
-✅ No console errors
-✅ Smooth performance on device
-✅ Proper keyboard handling
-✅ Safe area compliance
-✅ Gesture navigation works
-
-## Post-Implementation Checklist
-
-- [ ] All screens implemented
-- [ ] Navigation working
-- [ ] API integration complete
-- [ ] Auth flow tested
-- [ ] Media features working
-- [ ] Theme switching smooth
-- [ ] No console errors
-- [ ] Screenshots captured
-- [ ] Android tested
-- [ ] iOS tested
-- [ ] Performance acceptable
-- [ ] Offline handling works
+- Database-driven themes work identically to web
+- All 8 default themes available (Moon, Sun, Daylight, Comet, Earth, Rocket, Saturn, Sparkle)
+- Users can customize any theme
+- Customizations persist per user
+- Theme applies instantly across entire app
+- Color pickers work for all color fields
+- Reset functionality works silently
+- Performance remains smooth

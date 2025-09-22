@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# CosmicBoard Android Development Setup Script
+# CosmicBoard Android Development Setup Script - INTERACTIVE VERSION
 # This script handles Android emulator setup and app launching
+# Keeps the terminal alive and shows Metro logs
 
 set -e  # Exit on error
 
@@ -284,12 +285,11 @@ start_metro() {
 
     sleep 2
 
-    print_status "Starting Metro bundler..."
-    # Use nohup to keep Metro running after script exit
-    nohup npx expo start --clear --port ${METRO_PORT} > /tmp/metro-android.log 2>&1 &
+    print_status "Starting Metro bundler (interactive mode)..."
+    # For interactive mode, we'll run Metro in foreground later
+    # For now, start it in background to complete setup
+    npx expo start --clear --port ${METRO_PORT} > /tmp/metro-android.log 2>&1 &
     METRO_PID=$!
-    # Disown the process so it won't be killed when script exits
-    disown $METRO_PID
 
     # Wait for Metro to be ready with increased timeout
     print_status "Waiting for Metro bundler to start (this may take a minute)..."
@@ -398,9 +398,6 @@ main() {
     echo "========================================="
     echo "   CosmicBoard Android Development"
     echo "========================================="
-    echo ""
-    echo "Running in background mode. For interactive mode with live logs, use:"
-    echo "  ./start-android-interactive.sh"
     echo ""
     
     # Run setup steps
@@ -547,16 +544,33 @@ main() {
         echo ""
         print_success "🎉 Everything is working! Your app should be running."
         echo ""
-        echo "Services will continue running after this script exits:"
+        echo "═══════════════════════════════════════════════════════════"
+        echo "  INTERACTIVE MODE - Metro Bundler Console"
+        echo "═══════════════════════════════════════════════════════════"
+        echo ""
+        echo "Controls:"
+        echo "• Press 'r' to reload the app"
+        echo "• Press 'd' to open developer menu"
+        echo "• Press Ctrl+C to stop all services and exit"
+        echo ""
+        echo "Services running:"
         echo "• Backend API on port ${BACKEND_PORT}"
         echo "• Metro bundler on port ${METRO_PORT}"
         echo "• Port forwarding is active"
         echo ""
-        echo "Quick tips:"
-        echo "• Press Cmd+M in emulator for Dev Menu"
-        echo "• To reload: Press 'r' in Metro terminal or Cmd+R in emulator"
-        echo "• If app gets stuck, run: ./fix-android-dev.sh"
-        echo "• To stop all services: pkill -f 'expo|metro|cosmicboard-backend'"
+        print_status "Switching to Metro console..."
+        echo "-----------------------------------------------------------"
+        echo ""
+
+        # Kill the background Metro and restart in foreground for interactive mode
+        if [ ! -z "$METRO_PID" ]; then
+            kill $METRO_PID 2>/dev/null || true
+            sleep 2
+        fi
+
+        # Run Metro in foreground - this will keep the terminal alive
+        print_success "Metro bundler running interactively. Press 'r' to reload."
+        npx expo start --clear --port ${METRO_PORT}
     else
         echo ""
         print_warning "Some components may need attention."
@@ -571,31 +585,64 @@ main() {
         adb reverse tcp:8082 tcp:8082 2>/dev/null || true
         sleep 2
         print_success "Port forwarding re-established. App should work now."
+
+        echo ""
+        print_status "Starting interactive mode anyway..."
+        echo "-----------------------------------------------------------"
+
+        # Kill the background Metro and restart in foreground
+        if [ ! -z "$METRO_PID" ]; then
+            kill $METRO_PID 2>/dev/null || true
+            sleep 2
+        fi
+
+        # Run Metro in foreground even if there were issues
+        npx expo start --clear --port ${METRO_PORT}
     fi
 }
 
-# Cleanup function - only for manual interruption (Ctrl+C)
+# Cleanup function for interactive mode - cleans up everything on exit
 cleanup() {
     echo ""
-    print_warning "Script interrupted! Cleaning up..."
+    echo ""
+    print_warning "Shutting down interactive session..."
 
-    # Only kill processes we started
-    if [ ! -z "$METRO_PID" ]; then
-        print_status "Stopping Metro bundler..."
-        kill $METRO_PID 2>/dev/null || true
-    fi
+    # Kill Metro if running
+    print_status "Stopping Metro bundler..."
+    pkill -f "expo start" 2>/dev/null || true
 
-    if [ ! -z "$BACKEND_PID" ]; then
+    # Ask if user wants to stop backend
+    echo ""
+    echo -n "Stop backend server too? (y/N): "
+    read -t 5 -n 1 stop_backend || true
+    echo ""
+
+    if [[ "$stop_backend" == "y" || "$stop_backend" == "Y" ]]; then
         print_status "Stopping backend server..."
-        kill $BACKEND_PID 2>/dev/null || true
+        pkill -f "cosmicboard-backend" 2>/dev/null || true
+    else
+        print_status "Backend server kept running"
     fi
 
-    # DO NOT remove port forwarding - keep it active for the app!
-    print_status "Port forwarding kept active for app connectivity"
-    echo "Active port forwards:"
-    adb reverse --list | sed 's/^/  /'
+    # Ask about port forwarding
+    echo -n "Remove port forwarding? (y/N): "
+    read -t 5 -n 1 remove_ports || true
+    echo ""
 
-    print_success "Cleanup complete"
+    if [[ "$remove_ports" == "y" || "$remove_ports" == "Y" ]]; then
+        print_status "Removing port forwarding..."
+        adb reverse --remove-all 2>/dev/null || true
+    else
+        print_status "Port forwarding kept active"
+        echo "Active port forwards:"
+        adb reverse --list 2>/dev/null | sed 's/^/  /' || true
+    fi
+
+    echo ""
+    print_success "Interactive session ended"
+    echo ""
+    echo "To restart: ./start-android-interactive.sh"
+    echo "To run in background: ./start-android.sh"
     exit 0
 }
 

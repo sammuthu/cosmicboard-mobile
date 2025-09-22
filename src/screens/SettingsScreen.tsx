@@ -42,7 +42,7 @@ const themeEmojis: Record<string, string> = {
 
 export default function SettingsScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { theme, themeName, setTheme, availableThemes } = useTheme();
+  const { theme, themeName, setTheme, availableThemes, loading } = useTheme();
 
   const handleLogout = async () => {
     Alert.alert(
@@ -66,51 +66,14 @@ export default function SettingsScreen() {
     );
   };
 
-  const renderThemeOption = (themeKey: string) => {
-    const themeOption = availableThemes[themeKey as keyof typeof availableThemes];
-    const emoji = themeEmojis[themeKey] || '✨';
-    const isSelected = themeName === themeKey;
-
+  // Show loading state if themes are still loading
+  if (loading) {
     return (
-      <TouchableOpacity
-        key={themeKey}
-        onPress={() => setTheme(themeKey as any)}
-        activeOpacity={0.7}
-      >
-        <LinearGradient
-          colors={
-            isSelected
-              ? [theme.colors.cosmic.purple + '20', theme.colors.cosmic.pink + '10']
-              : [theme.colors.background.secondary, theme.colors.background.tertiary]
-          }
-          style={[
-            styles.themeCard,
-            {
-              borderColor: isSelected ? theme.colors.cosmic.purple : theme.colors.ui.border + '30',
-              borderWidth: isSelected ? 2 : 1,
-            },
-          ]}
-        >
-          <View style={[styles.themePreview, { backgroundColor: themeOption.colors.background.primary }]}>
-            <View style={[styles.themeAccent, { backgroundColor: themeOption.colors.cosmic.purple }]} />
-            <View style={[styles.themeAccent, { backgroundColor: themeOption.colors.cosmic.pink }]} />
-            <View style={[styles.themeAccent, { backgroundColor: themeOption.colors.cosmic.cyan }]} />
-          </View>
-          <View style={styles.themeInfo}>
-            <Text style={styles.themeEmoji}>{emoji}</Text>
-            <Text style={[styles.themeName, { color: theme.colors.text.primary }]}>
-              {themeKey.charAt(0).toUpperCase() + themeKey.slice(1)}
-            </Text>
-          </View>
-          {isSelected && (
-            <View style={[styles.checkIcon, { backgroundColor: theme.colors.cosmic.purple }]}>
-              <Check size={12} color="#fff" />
-            </View>
-          )}
-        </LinearGradient>
-      </TouchableOpacity>
+      <View style={[styles.container, { backgroundColor: theme.colors.background.primary, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: theme.colors.text.primary }}>Loading themes...</Text>
+      </View>
     );
-  };
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
@@ -145,8 +108,67 @@ export default function SettingsScreen() {
           </View>
 
           <View style={styles.themeGrid}>
-            {Object.keys(availableThemes).map(renderThemeOption)}
+            {availableThemes.map((themeTemplate) => (
+              <TouchableOpacity
+                key={themeTemplate.id}
+                onPress={() => setTheme(themeTemplate.id)}
+                activeOpacity={0.7}
+              >
+                <LinearGradient
+                  colors={
+                    themeName === themeTemplate.name
+                      ? [theme.colors.cosmic.purple + '20', theme.colors.cosmic.pink + '10']
+                      : [theme.colors.background.secondary, theme.colors.background.tertiary]
+                  }
+                  style={[
+                    styles.themeCard,
+                    {
+                      borderColor: themeName === themeTemplate.name ? theme.colors.cosmic.purple : theme.colors.ui.border + '30',
+                      borderWidth: themeName === themeTemplate.name ? 2 : 1,
+                    },
+                  ]}
+                >
+                  <View style={[styles.themePreview, { backgroundColor: themeTemplate.colors.parentBackground.from }]}>
+                    <View style={[styles.themeAccent, { backgroundColor: themeTemplate.colors.buttons.primary.background }]} />
+                    <View style={[styles.themeAccent, { backgroundColor: themeTemplate.colors.prismCard.glowGradient.from }]} />
+                    <View style={[styles.themeAccent, { backgroundColor: themeTemplate.colors.text.accent }]} />
+                  </View>
+                  <View style={styles.themeInfo}>
+                    <Text style={styles.themeEmoji}>{themeEmojis[themeTemplate.name] || '✨'}</Text>
+                    <Text style={[styles.themeName, { color: theme.colors.text.primary }]}>
+                      {themeTemplate.displayName}
+                    </Text>
+                  </View>
+                  {themeName === themeTemplate.name && (
+                    <View style={[styles.checkIcon, { backgroundColor: theme.colors.cosmic.purple }]}>
+                      <Check size={12} color="#fff" />
+                    </View>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
           </View>
+
+          {/* Customize Themes Button */}
+          <TouchableOpacity
+            style={[styles.customizeButton, { backgroundColor: theme.colors.background.card, borderColor: theme.colors.ui.border }]}
+            onPress={() => navigation.navigate('ThemeGallery' as any)}
+            activeOpacity={0.7}
+          >
+            <LinearGradient
+              colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
+              style={styles.customizeIcon}
+            >
+              <Sparkles size={16} color="#fff" />
+            </LinearGradient>
+            <View style={styles.customizeContent}>
+              <Text style={[styles.customizeTitle, { color: theme.colors.text.primary }]}>Customize Themes</Text>
+              <Text style={[styles.customizeSubtitle, { color: theme.colors.text.secondary }]}>
+                Create your own color combinations
+              </Text>
+            </View>
+            <ChevronRight size={20} color={theme.colors.text.muted} />
+          </TouchableOpacity>
         </View>
 
         {/* Preferences */}
@@ -366,5 +388,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     marginTop: 24,
+  },
+  customizeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 16,
+    borderWidth: 1,
+    gap: 12,
+  },
+  customizeIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customizeContent: {
+    flex: 1,
+  },
+  customizeTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  customizeSubtitle: {
+    fontSize: 13,
   },
 });

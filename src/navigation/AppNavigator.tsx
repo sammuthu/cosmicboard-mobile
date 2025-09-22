@@ -18,6 +18,9 @@ import SettingsScreen from '../screens/SettingsScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import ReferenceDetailScreen from '../screens/ReferenceDetailScreen';
 import MediaScreen from '../screens/MediaScreen';
+import ThemeGalleryScreen from '../screens/themes/ThemeGalleryScreen';
+import ThemeCustomizationScreen from '../screens/themes/ThemeCustomizationScreen';
+import { ThemeTemplate } from '../contexts/ThemeContext';
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -25,6 +28,8 @@ export type RootStackParamList = {
   TaskDetail: { taskId: string; projectId: string };
   ReferenceDetail: { reference: any };
   Media: { projectId: string };
+  ThemeGallery: undefined;
+  ThemeCustomization: { theme: ThemeTemplate };
 };
 
 export type MainTabParamList = {
@@ -66,31 +71,7 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <Home color={color} size={size} />
           ),
-          header: () => {
-            const { theme } = useTheme();
-            return (
-              <View style={[styles.header, { backgroundColor: theme.colors.background.secondary }]}>
-                <View style={styles.headerContent}>
-                  <LinearGradient
-                    colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink, theme.colors.cosmic.cyan]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.titleGradient}
-                  >
-                    <Text style={styles.headerTitle}>Cosmic Space</Text>
-                  </LinearGradient>
-                  <LinearGradient
-                    colors={[theme.colors.cosmic.cyan, theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.subtitleGradient}
-                  >
-                    <Text style={styles.headerSubtitle}>Align your actions with the cosmos</Text>
-                  </LinearGradient>
-                </View>
-              </View>
-            );
-          },
+          headerShown: false,
         }}
       />
       <Tab.Screen
@@ -128,35 +109,7 @@ function MainTabs() {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    paddingTop: 44, // Status bar height
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  titleGradient: {
-    marginBottom: 6,
-  },
-  subtitleGradient: {
-    paddingHorizontal: 4,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-    color: 'transparent',
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-    color: 'transparent',
-  },
-});
+const styles = StyleSheet.create({});
 
 export default function AppNavigator() {
   const { theme, themeName } = useTheme();
@@ -214,6 +167,22 @@ export default function AppNavigator() {
           component={MediaScreen}
           options={{
             title: 'Media',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen
+          name="ThemeGallery"
+          component={ThemeGalleryScreen}
+          options={{
+            title: 'Theme Gallery',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen
+          name="ThemeCustomization"
+          component={ThemeCustomizationScreen}
+          options={{
+            title: 'Customize Theme',
             headerBackTitle: 'Back',
           }}
         />

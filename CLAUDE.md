@@ -2,145 +2,95 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🚨 CRITICAL: Web-Mobile Sync Instructions
-**IMPORTANT**: Before starting any work, read the comprehensive sync instructions in `MOBILE_SYNC_INSTRUCTIONS.md`. This file contains all recent web changes that must be implemented in the mobile app.
+## Commands
 
-## Project Overview
-
-CosmicBoard Mobile is a React Native (Expo SDK 53) project management application with a cosmic/space theme. It's a cloud-first mobile companion to the CosmicBoard web app, sharing the same PostgreSQL backend (via Prisma) and authentication system. The app must maintain feature parity with the web frontend while providing mobile-optimized UX.
-
-## Technology Stack
-
-- **Framework**: React Native with Expo SDK 53
-- **Language**: TypeScript (strict mode enabled)
-- **Navigation**: React Navigation v7 (Stack + Bottom Tabs)
-- **State Management**: React Query (@tanstack/react-query) for server state
-- **Storage**: AsyncStorage for local data persistence, MMKV for fast key-value storage
-- **UI Components**: Custom PrismCard components with gradient effects (expo-linear-gradient)
-- **Icons**: lucide-react-native
-- **Authentication**: react-native-keychain for secure token storage
-
-## Common Development Commands
-
+### Development
 ```bash
-# Start development server
-npm start
+# iOS Development
+./start.sh                      # Start iOS app with backend auto-start
+./start.sh ios                  # iOS only (no web)
+npm run ios                     # Run on iOS simulator
 
-# Run on iOS simulator
-npm run ios
+# Android Development
+./start-android.sh              # Start Android app with emulator setup
+npm run android                 # Run on Android emulator
 
-# Run on Android emulator
-npm run android
+# Metro/Expo
+npx expo start --clear          # Start Metro bundler with cache clear
+npx expo run:ios --port 8081   # Build iOS with specific Metro port
+npx expo run:android           # Build Android
 
-# Run on web
-npm run web
-
-# Start complete development environment (iOS + backend check)
-./start.sh
-
-# Start without backend check
-./start.sh --no-backend
-
-# Fix Android-specific issues
-./fix-android.sh
-
-# Fix native module issues
-./fix-native-modules.sh
+# Backend (assumes ../cosmicboard-backend exists)
+cd ../cosmicboard-backend && npm run dev
 ```
 
-## Project Architecture
+### Troubleshooting
+```bash
+# Android port forwarding fix
+adb reverse tcp:7779 tcp:7779
 
-### Directory Structure
-- `/src/components` - Reusable UI components (PrismCard, CodeDisplay, SyntaxHighlight)
-- `/src/models` - TypeScript interfaces (Project, Task, Reference, MediaFile)
-- `/src/navigation` - Navigation setup with typed routes
-- `/src/screens` - Screen components for each view
-- `/src/services` - Business logic (api.ts for backend, auth.service.ts for authentication)
-- `/src/styles` - Theme colors and shared styles
-- `/src/contexts` - React contexts for global state
+# Clean Metro/Expo processes
+pkill -f "expo|metro|node"
+lsof -ti:8081 | xargs kill -9
 
-### Key Architectural Patterns
+# iOS pod reinstall
+cd ios && pod install && cd ..
 
-1. **Cloud-First Data Management**: All data operations go through `ApiService` singleton in `/src/services/api.ts`. This service connects to the PostgreSQL backend shared with the web app.
+# Android clean build
+cd android && ./gradlew clean && cd ..
+```
 
-2. **Authentication**: Magic link (passwordless) authentication with secure token storage using AsyncStorage. Automatic token refresh via axios interceptors.
+## Architecture
 
-3. **State Management**: React Query for server state management with caching and automatic refetching.
+### Tech Stack
+- **Frontend**: React Native with Expo SDK 53
+- **Navigation**: React Navigation v7 (bottom tabs + stack)
+- **State**: React Context API (Auth, Theme)
+- **API**: Axios with interceptors for auth
+- **Storage**: AsyncStorage, MMKV for performance-critical data
+- **Backend**: PostgreSQL on port 7779 (expected at ../cosmicboard-backend)
 
-4. **Navigation Types**: Strongly typed navigation using `RootStackParamList` and `MainTabParamList` in `/src/navigation/AppNavigator.tsx`.
+### Project Structure
+```
+src/
+├── contexts/           # Global state management
+│   ├── AuthContext    # Auth state, token management, axios interceptors
+│   └── ThemeContext   # Theme state, 8 database-driven themes
+├── services/
+│   ├── api.ts         # API service, localhost:7779 for dev
+│   └── storage.ts     # AsyncStorage abstraction
+├── navigation/
+│   └── AppNavigator   # Tab navigator with 5 main screens
+├── screens/           # Main app screens
+└── components/        # Reusable UI components
+```
 
-5. **Data Model Relationships** (same as web app):
-   - Projects have many Tasks and References (linked by projectId)
-   - Tasks have priority levels (SUPERNOVA, STELLAR, NEBULA) and status states
-   - References are categorized as snippets or documentation
-   - Media files support photos, screenshots, and PDFs
+### Key Implementation Details
 
-### API Configuration
+**Authentication Flow**:
+- Development uses hardcoded token in AuthContext
+- Token stored in AsyncStorage and Keychain
+- Axios interceptors handle token injection and refresh
+- Both iOS and Android use localhost:7779 (Android via adb reverse)
 
-- **Backend Port**: http://localhost:7778 (note: documentation mentions 7779 but code uses 7778)
-- **Platform-specific URLs**:
-  - Android emulator: `http://10.0.2.2:7778/api`
-  - iOS simulator: `http://localhost:7778/api`
-  - Production: `https://cosmicspace.app/api`
-- **Database**: PostgreSQL via Prisma (NOT MongoDB)
-- **NO Database Migrations**: Database is already set up and working
+**Navigation Structure**:
+- Bottom tab navigator with Home, Projects, Media, Search, Settings
+- Each tab has its own stack navigator for detail screens
+- Theme colors applied to navigation bars and tab bars
 
-### Important Implementation Details
+**Platform-Specific Configuration**:
+- Android requires `adb reverse tcp:7779 tcp:7779` for backend access
+- iOS Simulator works with localhost directly
+- Both platforms use Expo Go for development
 
-- **Secure Storage**: Auth tokens in AsyncStorage, sensitive data in react-native-keychain
-- **Color Theme**: Cosmic-themed gradients with multiple theme options
-- **TypeScript**: Strict mode enabled - ensure all types are properly defined
-- **Error Handling**: Automatic logout on 401, token refresh on expiry
-- **Media Support**: Image picker for photos, PDF viewer, markdown rendering
-- **Platform Differences**: Handle Android emulator localhost (10.0.2.2) vs iOS (localhost)
+## Development Notes
 
-## 🤖 AUTOMATED IMPLEMENTATION INSTRUCTIONS
+### Environment Setup
+- Backend must be running at port 7779
+- PostgreSQL via Docker Compose in backend directory
+- Development token: `acf42bf1db704dd18e3c64e20f1e73da2f19f8c23cf3bdb7e23c9c2a3c5f1e2d`
 
-When you receive the command "sync with web" or similar, you must:
-
-1. **Read MOBILE_SYNC_INSTRUCTIONS.md** first
-2. **Remove any database migration commands** from scripts
-3. **Automatically run start.sh or npm run android** to launch emulator/simulator
-4. **Take screenshots** at each implementation step (if possible)
-5. **Detect and fix errors** from console logs
-6. **Continue iterating** until all features work without errors
-7. **Test both platforms** (iOS and Android)
-8. **Never ask for manual intervention** - fix everything automatically
-
-### Permissions Granted
-- ✅ Full permission to modify any files
-- ✅ Launch emulators/simulators automatically
-- ✅ Install npm packages as needed
-- ✅ Run any commands necessary
-- ✅ Fix errors without asking
-- ✅ Iterate until everything works
-
-### Expected Behavior
-- Start with `npm run android` for Android testing or `./start.sh` for iOS
-- Monitor console for errors and fix automatically
-- Continue until no errors remain
-- Ensure feature parity with web frontend
-- Maintain mobile-optimized UX patterns
-
-## Testing and Development Workflow
-
-### Development Server Startup
-The `start.sh` script handles the complete development environment:
-1. Checks backend server availability (port 7778)
-2. Optionally starts PostgreSQL database via Docker
-3. Installs npm dependencies if needed
-4. Installs iOS CocoaPods (macOS only)
-5. Cleans up existing Metro processes
-6. Starts Metro bundler and development server
-7. Launches iOS simulator
-
-### Platform-Specific Testing
-- **Android**: Use `npm run android` or Android Studio emulator
-- **iOS**: Use `npm run ios` or `./start.sh` (macOS only)
-- **Web**: Use `npm run web` (port 8082)
-
-### Common Issues and Solutions
-- **Metro port conflicts**: Script automatically kills existing Metro processes
-- **Native module issues**: Run `./fix-native-modules.sh`
-- **Android build issues**: Run `./fix-android.sh`
-- **Pod installation**: Handled automatically by start.sh on macOS
+### Known Issues
+- Tab navigation may appear visual-only on Android emulator - manual clicks work
+- Metro bundler occasionally needs port 8081 cleared before starting
+- Theme changes apply globally including navigation bars

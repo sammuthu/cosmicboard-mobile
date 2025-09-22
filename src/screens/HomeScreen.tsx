@@ -144,7 +144,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: 50 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -160,44 +160,44 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.statsScroll}
         >
-          <View
-            style={[styles.statCard, {
-              backgroundColor: theme.colors.background.card,
-              borderColor: theme.colors.ui.border
-            }]}
+          <LinearGradient
+            colors={[theme.colors.background.elevated, theme.colors.background.card]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.statCard}
           >
-            <View style={styles.statIconBox}>
-              <TrendingUp size={18} color={theme.colors.cosmic.purple} />
+            <View style={[styles.statIconBox, { backgroundColor: theme.colors.cosmic.purple + '15' }]}>
+              <TrendingUp size={20} color={theme.colors.cosmic.purple} />
             </View>
-            <Text style={[styles.statNumber, { color: '#1a1a1a' }]}>{stats.projects}</Text>
-            <Text style={[styles.statLabel, { color: '#4a4a4a' }]}>Projects</Text>
-          </View>
+            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.projects}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>PROJECTS</Text>
+          </LinearGradient>
 
-          <View
-            style={[styles.statCard, {
-              backgroundColor: theme.colors.background.card,
-              borderColor: theme.colors.ui.border
-            }]}
+          <LinearGradient
+            colors={[theme.colors.background.elevated, theme.colors.background.card]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.statCard}
           >
-            <View style={styles.statIconBox}>
-              <Zap size={18} color={theme.colors.cosmic.cyan} />
+            <View style={[styles.statIconBox, { backgroundColor: theme.colors.cosmic.cyan + '15' }]}>
+              <Zap size={20} color={theme.colors.cosmic.cyan} />
             </View>
-            <Text style={[styles.statNumber, { color: '#1a1a1a' }]}>{stats.activeTasks}</Text>
-            <Text style={[styles.statLabel, { color: '#4a4a4a' }]}>Active</Text>
-          </View>
+            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.activeTasks}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>ACTIVE</Text>
+          </LinearGradient>
 
-          <View
-            style={[styles.statCard, {
-              backgroundColor: theme.colors.background.card,
-              borderColor: theme.colors.ui.border
-            }]}
+          <LinearGradient
+            colors={[theme.colors.background.elevated, theme.colors.background.card]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.statCard}
           >
-            <View style={styles.statIconBox}>
-              <CheckCircle size={18} color={theme.colors.status.completed} />
+            <View style={[styles.statIconBox, { backgroundColor: theme.colors.status.completed + '15' }]}>
+              <CheckCircle size={20} color={theme.colors.status.completed} />
             </View>
-            <Text style={[styles.statNumber, { color: '#1a1a1a' }]}>{stats.completedToday}</Text>
-            <Text style={[styles.statLabel, { color: '#4a4a4a' }]}>Today</Text>
-          </View>
+            <Text style={[styles.statNumber, { color: theme.colors.text.primary }]}>{stats.completedToday}</Text>
+            <Text style={[styles.statLabel, { color: theme.colors.text.secondary }]}>TODAY</Text>
+          </LinearGradient>
         </ScrollView>
 
         {/* Priority Tasks */}
@@ -206,10 +206,10 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <View
                 style={[styles.sectionIcon, {
-                  backgroundColor: theme.colors.background.card
+                  backgroundColor: theme.colors.cosmic.purple + '15'
                 }]}
               >
-                <Zap size={16} color={theme.colors.cosmic.purple} />
+                <Zap size={18} color={theme.colors.cosmic.purple} />
               </View>
               <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Priority</Text>
             </View>
@@ -235,10 +235,10 @@ export default function HomeScreen() {
                       { backgroundColor: task.priority === 'SUPERNOVA' ? theme.colors.priority.supernova : theme.colors.priority.stellar }
                     ]} />
                     <View style={styles.taskInfo}>
-                      <Text style={[styles.taskTitle, { color: '#1a1a1a' }]} numberOfLines={1}>{task.title}</Text>
-                      <Text style={[styles.taskProject, { color: '#4a4a4a' }]}>{task.projectName}</Text>
+                      <Text style={[styles.taskTitle, { color: theme.colors.text.primary }]} numberOfLines={1}>{task.title}</Text>
+                      <Text style={[styles.taskProject, { color: theme.colors.text.secondary }]}>{task.projectName}</Text>
                     </View>
-                    <ArrowRight size={16} color='#6a6a6a' />
+                    <ArrowRight size={16} color={theme.colors.text.muted} />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -251,10 +251,10 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <View
               style={[styles.sectionIcon, {
-                backgroundColor: theme.colors.background.card
+                backgroundColor: theme.colors.cosmic.cyan + '15'
               }]}
             >
-              <Activity size={16} color={theme.colors.cosmic.cyan} />
+              <Activity size={18} color={theme.colors.cosmic.cyan} />
             </View>
             <Text style={[styles.sectionTitle, { color: theme.colors.text.primary }]}>Activity</Text>
           </View>
@@ -272,12 +272,12 @@ export default function HomeScreen() {
                   {activity.icon}
                 </View>
                 <View style={styles.activityText}>
-                  <Text style={[styles.activityLine, { color: '#4a4a4a' }]}>
-                    <Text style={[styles.activityUser, { color: '#1a1a1a' }]}>{activity.user}</Text>
+                  <Text style={[styles.activityLine, { color: theme.colors.text.secondary }]}>
+                    <Text style={[styles.activityUser, { color: theme.colors.text.primary }]}>{activity.user}</Text>
                     {' '}{activity.action}{' '}
                     <Text style={[styles.activityTarget, { color: theme.colors.cosmic.purple }]}>{activity.target}</Text>
                   </Text>
-                  <Text style={[styles.activityTime, { color: '#6a6a6a' }]}>{activity.time}</Text>
+                  <Text style={[styles.activityTime, { color: theme.colors.text.muted }]}>{activity.time}</Text>
                 </View>
               </View>
             ))}
@@ -292,10 +292,12 @@ export default function HomeScreen() {
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={[theme.colors.cosmic.purple, theme.colors.cosmic.pink]}
+          colors={[theme.colors.cosmic.blue, theme.colors.cosmic.purple]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={[styles.fabGradient, { shadowColor: theme.colors.cosmic.purple }]}
         >
-          <Plus size={24} color={theme.colors.text.primary} />
+          <Plus size={28} color='#ffffff' />
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -314,103 +316,118 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statsScroll: {
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    gap: 16,
   },
   statCard: {
-    width: 100,
-    padding: 16,
-    borderRadius: 16,
+    width: 110,
+    padding: 20,
+    borderRadius: 20,
     alignItems: 'center',
-    marginRight: 12,
-    borderWidth: 1,
+    marginRight: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   statIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '700',
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
+    fontWeight: '600',
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1.2,
   },
   section: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 8,
+    marginBottom: 16,
+    gap: 12,
   },
   sectionIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    letterSpacing: 0.3,
+    letterSpacing: -0.3,
   },
   taskCard: {
-    borderRadius: 12,
-    marginBottom: 8,
-    borderWidth: 1,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
     overflow: 'hidden',
   },
   taskContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    gap: 12,
+    padding: 18,
+    gap: 16,
   },
   priorityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   taskInfo: {
     flex: 1,
   },
   taskTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    marginBottom: 2,
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+    letterSpacing: -0.2,
   },
   taskProject: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '400',
   },
   activityCard: {
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   activityItem: {
     flexDirection: 'row',
-    paddingVertical: 10,
-    gap: 10,
+    paddingVertical: 14,
+    gap: 14,
   },
   activityBorder: {
     borderBottomWidth: 1,
   },
   activityIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -418,32 +435,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   activityLine: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
   },
   activityUser: {
     fontWeight: '600',
   },
   activityTarget: {
+    fontWeight: '500',
   },
   activityTime: {
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: 12,
+    marginTop: 4,
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 32,
     right: 24,
   },
   fabGradient: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 10,
   },
 });
