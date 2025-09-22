@@ -131,7 +131,7 @@ class ApiService {
     await axios.delete(`${API_URL}/projects/${projectId}/tasks/${taskId}`);
   }
 
-  // References
+  // Neural Notes (backend still uses 'references' endpoint)
   async getReferences(projectId: string) {
     const response = await axios.get(`${API_URL}/projects/${projectId}/references`);
     return response.data;

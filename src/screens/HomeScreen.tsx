@@ -8,6 +8,9 @@ import {
   RefreshControl,
   ActivityIndicator,
   Dimensions,
+  Modal,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -22,6 +25,7 @@ import {
   Activity,
   Users,
   ArrowRight,
+  X,
 } from 'lucide-react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import apiService from '../services/api';
@@ -43,6 +47,10 @@ export default function HomeScreen() {
     completedToday: 0,
     activeTasks: 0,
   });
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [creating, setCreating] = useState(false);
 
   const loadData = async () => {
     try {
@@ -131,6 +139,37 @@ export default function HomeScreen() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
+  };
+
+  const handleCreateProject = async () => {
+    if (!newProjectName.trim()) {
+      Alert.alert('Error', 'Please enter a project name');
+      return;
+    }
+
+    setCreating(true);
+    try {
+      await apiService.createProject({
+        name: newProjectName,
+        description: newProjectDescription,
+      });
+
+      // Reset form and close modal
+      setNewProjectName('');
+      setNewProjectDescription('');
+      setShowCreateModal(false);
+
+      // Reload data to show new project
+      await loadData();
+
+      // Show success message
+      Alert.alert('Success', 'Project created successfully!');
+    } catch (error: any) {
+      console.error('Failed to create project:', error);
+      Alert.alert('Error', error.message || 'Failed to create project');
+    } finally {
+      setCreating(false);
+    }
   };
 
   if (loading) {
@@ -288,7 +327,7 @@ export default function HomeScreen() {
       {/* FAB */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate('ProjectDetail', { projectId: 'new' })}
+        onPress={() => setShowCreateModal(true)}
         activeOpacity={0.9}
       >
         <LinearGradient
@@ -300,6 +339,91 @@ export default function HomeScreen() {
           <Plus size={28} color='#ffffff' />
         </LinearGradient>
       </TouchableOpacity>
+
+      {/* Create Project Modal */}
+      <Modal
+        visible={showCreateModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCreateModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.background.secondary }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text.primary }]}>
+                Create New Project
+              </Text>
+              <TouchableOpacity onPress={() => setShowCreateModal(false)}>
+                <X size={24} color={theme.colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              style={[styles.modalInput, {
+                backgroundColor: theme.colors.background.primary,
+                color: theme.colors.text.primary,
+                borderColor: theme.colors.border
+              }]}
+              placeholder="Project Name"
+              placeholderTextColor={theme.colors.text.secondary}
+              value={newProjectName}
+              onChangeText={setNewProjectName}
+            />
+
+            <TextInput
+              style={[styles.modalInput, styles.modalTextArea, {
+                backgroundColor: theme.colors.background.primary,
+                color: theme.colors.text.primary,
+                borderColor: theme.colors.border
+              }]}
+              placeholder="Description (optional)"
+              placeholderTextColor={theme.colors.text.secondary}
+              value={newProjectDescription}
+              onChangeText={setNewProjectDescription}
+              multiline
+              numberOfLines={4}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel, {
+                  borderColor: theme.colors.border
+                }]}
+                onPress={() => {
+                  setShowCreateModal(false);
+                  setNewProjectName('');
+                  setNewProjectDescription('');
+                }}
+              >
+                <Text style={[styles.modalButtonText, { color: theme.colors.text.secondary }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCreate]}
+                onPress={handleCreateProject}
+                disabled={creating}
+              >
+                <LinearGradient
+                  colors={[theme.colors.cosmic.blue, theme.colors.cosmic.purple]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.modalButtonGradient}
+                >
+                  {creating ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <Text style={[styles.modalButtonText, { color: '#ffffff' }]}>
+                      Create
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -463,5 +587,68 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.35,
     shadowRadius: 12,
     elevation: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: width - 48,
+    borderRadius: 20,
+    padding: 24,
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  modalTextArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  modalButtonCancel: {
+    borderWidth: 1,
+  },
+  modalButtonCreate: {
+    overflow: 'hidden',
+  },
+  modalButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    paddingVertical: 14,
   },
 });

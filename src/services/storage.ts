@@ -135,7 +135,7 @@ class StorageService {
     return true;
   }
 
-  // References
+  // Neural Notes (internally still uses 'references' for backward compatibility)
   async getReferences(projectId?: string): Promise<Reference[]> {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEYS.REFERENCES);

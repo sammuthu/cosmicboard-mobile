@@ -285,7 +285,7 @@ export default function ProjectDetailScreen() {
           onPress={() => setActiveTab('references')}
         >
           <Text style={[styles.tabText, activeTab === 'references' && styles.activeTabText]}>
-            References ({references.length})
+            Neural Notes ({references.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -336,8 +336,8 @@ export default function ProjectDetailScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No references yet</Text>
-              <Text style={styles.emptySubtext}>Tap + to add your first reference</Text>
+              <Text style={styles.emptyText}>No neural notes yet</Text>
+              <Text style={styles.emptySubtext}>Tap + to add your first neural note</Text>
             </View>
           }
         />
@@ -391,7 +391,7 @@ export default function ProjectDetailScreen() {
         </View>
       </Modal>
 
-      {/* Reference Modal */}
+      {/* Neural Note Modal */}
       <Modal
         visible={showReferenceModal}
         animationType="slide"
@@ -400,7 +400,7 @@ export default function ProjectDetailScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Reference</Text>
+            <Text style={styles.modalTitle}>New Neural Note</Text>
             <TextInput
               style={styles.modalInput}
               placeholder="Enter title..."

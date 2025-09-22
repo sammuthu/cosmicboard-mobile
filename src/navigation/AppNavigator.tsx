@@ -158,7 +158,7 @@ export default function AppNavigator() {
           name="ReferenceDetail"
           component={ReferenceDetailScreen}
           options={{
-            title: 'Reference Details',
+            title: 'Neural Note',
             headerBackTitle: 'Back',
           }}
         />
