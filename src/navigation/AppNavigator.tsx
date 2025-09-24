@@ -63,7 +63,7 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <FolderOpen color={color} size={size} />
           ),
-          headerTitle: 'CosmicBoard',
+          headerTitle: 'Cosmic Space',
         }}
       />
       <Tab.Screen
