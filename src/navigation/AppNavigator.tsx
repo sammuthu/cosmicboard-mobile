@@ -13,6 +13,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import ReferenceDetailScreen from '../screens/ReferenceDetailScreen';
 import MediaScreen from '../screens/MediaScreen';
+import ThemeCustomizationScreen from '../screens/ThemeCustomizationScreen';
 
 export type RootStackParamList = {
   MainTabs: undefined;
@@ -20,6 +21,7 @@ export type RootStackParamList = {
   TaskDetail: { taskId: string; projectId: string };
   ReferenceDetail: { reference: any };
   MediaScreen: { projectId: string };
+  ThemeCustomization: { template: any };
 };
 
 export type MainTabParamList = {
@@ -150,9 +152,16 @@ export default function AppNavigator() {
         <Stack.Screen
           name="MediaScreen"
           component={MediaScreen}
-          options={{ 
+          options={{
             title: 'Project Media',
             headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen
+          name="ThemeCustomization"
+          component={ThemeCustomizationScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

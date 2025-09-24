@@ -10,11 +10,13 @@ import {
   Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { ThemeTemplate } from '../types/theme';
 import { useThemeColors } from '../hooks/useThemeColors';
 
 export default function SettingsScreen() {
+  const navigation = useNavigation<any>();
   const { activeTheme, templates, loading, setTheme } = useTheme();
   const colors = useThemeColors();
   const styles = createStyles(colors);
@@ -38,6 +40,10 @@ export default function SettingsScreen() {
       // Revert selection on error
       setSelectedTheme(activeTheme?.themeId || null);
     }
+  };
+
+  const handleCustomizeTheme = (template: ThemeTemplate) => {
+    navigation.navigate('ThemeCustomization', { template });
   };
 
   if (loading) {
@@ -110,7 +116,15 @@ export default function SettingsScreen() {
                 </View>
               </LinearGradient>
 
-              <Text style={styles.themeName}>{template.displayName}</Text>
+              <View style={styles.themeFooter}>
+                <Text style={styles.themeName}>{template.displayName}</Text>
+                <TouchableOpacity
+                  style={styles.customizeButton}
+                  onPress={() => handleCustomizeTheme(template)}
+                >
+                  <Text style={styles.customizeButtonText}>Customize</Text>
+                </TouchableOpacity>
+              </View>
 
               {selectedTheme === template.id && (
                 <View style={styles.selectedIndicator}>
@@ -224,12 +238,28 @@ const createStyles = (colors: any) => StyleSheet.create({
     flex: 1,
     borderRadius: 1,
   },
+  themeFooter: {
+    marginTop: 8,
+    alignItems: 'center',
+  },
   themeName: {
     textAlign: 'center',
-    marginTop: 8,
     fontSize: 14,
     fontWeight: '500',
     color: colors.text.primary,
+  },
+  customizeButton: {
+    marginTop: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    backgroundColor: colors.background.secondary,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: colors.ui.border,
+  },
+  customizeButtonText: {
+    fontSize: 12,
+    color: colors.text.accent,
   },
   selectedIndicator: {
     position: 'absolute',
