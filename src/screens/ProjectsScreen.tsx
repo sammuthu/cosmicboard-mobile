@@ -12,7 +12,9 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Plus } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useTheme } from '../contexts/ThemeContext';
 import PrismCard from '../components/PrismCard';
 import apiService from '../services/api';
 import { Project, Task, Reference } from '../models';
@@ -38,6 +40,7 @@ interface ProjectWithCounts extends Project {
 export default function ProjectsScreen() {
   const navigation = useNavigation<NavigationProp>();
   const colors = useThemeColors();
+  const { colors: themeColors } = useTheme();
   const styles = createStyles(colors);
   const [projects, setProjects] = useState<ProjectWithCounts[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -189,15 +192,29 @@ export default function ProjectsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
+      <LinearGradient
+        colors={themeColors ? [
+          themeColors.parentBackground.from,
+          themeColors.parentBackground.via,
+          themeColors.parentBackground.to
+        ] : [colors.background.primary, colors.background.primary, colors.background.primary]}
+        style={[styles.container, styles.centerContent]}
+      >
         <ActivityIndicator size="large" color={colors.cosmic.purple} />
         <Text style={styles.loadingText}>Loading projects...</Text>
-      </View>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={themeColors ? [
+        themeColors.parentBackground.from,
+        themeColors.parentBackground.via,
+        themeColors.parentBackground.to
+      ] : [colors.background.primary, colors.background.primary, colors.background.primary]}
+      style={styles.container}
+    >
       <FlatList
         data={projects}
         keyExtractor={(item) => item._id}
@@ -225,14 +242,13 @@ export default function ProjectsScreen() {
       >
         <Plus color={colors.text.primary} size={24} />
       </TouchableOpacity>
-    </View>
+    </LinearGradient>
   );
 }
 
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
   },
   listContent: {
     paddingBottom: 100, // Add space for FAB and ensure scrolling

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface PrismCardProps {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ export default function PrismCard({
   disabled = false
 }: PrismCardProps) {
   const colors = useThemeColors();
+  const { colors: themeColors } = useTheme();
   const styles = createStyles(colors);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -40,28 +42,35 @@ export default function PrismCard({
     }).start();
   };
 
+  // Use theme colors for gradient if available, otherwise fall back to defaults
+  const gradientColors = themeColors ? [
+    themeColors.prismCard.background.from,
+    themeColors.prismCard.background.via,
+    themeColors.prismCard.background.to
+  ] : ['rgba(139, 92, 246, 0.1)', 'rgba(236, 72, 153, 0.05)', 'rgba(236, 72, 153, 0.05)'];
+
+  const borderColor = themeColors?.prismCard.borderColor || colors.ui.border;
+
   const content = (
     <Animated.View
       style={[
         styles.container,
         style,
-        { transform: [{ scale: scaleAnim }] },
+        {
+          transform: [{ scale: scaleAnim }],
+          borderColor: borderColor,
+          borderWidth: 1
+        },
       ]}
     >
       <LinearGradient
-        colors={['rgba(139, 92, 246, 0.1)', 'rgba(236, 72, 153, 0.05)']}
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
         <View style={styles.content}>{children}</View>
       </LinearGradient>
-      
-      {/* Prism effect border */}
-      <View style={styles.borderTop} />
-      <View style={styles.borderRight} />
-      <View style={styles.borderBottom} />
-      <View style={styles.borderLeft} />
     </Animated.View>
   );
 
@@ -85,7 +94,6 @@ export default function PrismCard({
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
     borderRadius: 12,
-    backgroundColor: colors.background.card,
     overflow: 'hidden',
     marginVertical: 8,
     marginHorizontal: 16,
@@ -95,41 +103,5 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   content: {
     padding: 16,
-  },
-  borderTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: colors.cosmic.purple,
-    opacity: 0.3,
-  },
-  borderRight: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: colors.cosmic.pink,
-    opacity: 0.3,
-  },
-  borderBottom: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: colors.cosmic.blue,
-    opacity: 0.3,
-  },
-  borderLeft: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    width: 1,
-    backgroundColor: colors.cosmic.cyan,
-    opacity: 0.3,
   },
 });
