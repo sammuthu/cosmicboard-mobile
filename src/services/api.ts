@@ -3,18 +3,29 @@ import * as Keychain from 'react-native-keychain';
 import { Platform } from 'react-native';
 
 // Use the same backend as your web app
-// For Android emulator, use 10.0.2.2 to access host machine's localhost
-const API_URL = __DEV__ 
-  ? Platform.OS === 'android' 
-    ? 'http://10.0.2.2:7779/api'  // Android emulator special IP for host localhost
-    : 'http://localhost:7779/api'  // iOS simulator or web
-  : 'https://api.cosmicboard.com/api';  // For production
+// With adb reverse port forwarding, both Android and iOS can use localhost
+export const API_URL = __DEV__
+  ? 'http://localhost:7779/api'  // Both Android (with adb reverse) and iOS use localhost
+  : 'https://cosmicspace.app/api';  // For production
 
 class ApiService {
   private token: string | null = null;
   private refreshToken: string | null = null;
 
+  constructor() {
+    // Use dev token in development
+    if (__DEV__) {
+      this.token = 'acf42bf1db704dd18e3c64e20f1e73da2f19f8c23cf3bdb7e23c9c2a3c5f1e2d';
+      axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+    }
+  }
+
   async init() {
+    // In dev mode, token is already set in constructor
+    if (__DEV__) {
+      return;
+    }
+
     try {
       const credentials = await Keychain.getInternetCredentials('cosmicboard');
       if (credentials) {
@@ -315,6 +326,47 @@ class ApiService {
 
   async deleteMedia(id: string) {
     await axios.delete(`${API_URL}/media/${id}`);
+  }
+
+  // Themes
+  async getThemeTemplates() {
+    const response = await axios.get(`${API_URL}/themes/templates`);
+    return response.data;
+  }
+
+  async getThemeTemplate(id: string) {
+    const response = await axios.get(`${API_URL}/themes/templates/${id}`);
+    return response.data;
+  }
+
+  async getUserActiveTheme() {
+    const response = await axios.get(`${API_URL}/themes/user/active`);
+    return response.data;
+  }
+
+  async getUserThemeCustomizations() {
+    const response = await axios.get(`${API_URL}/themes/user/customizations`);
+    return response.data;
+  }
+
+  async saveThemeCustomization(themeId: string, customColors: any) {
+    const response = await axios.post(`${API_URL}/themes/user/customize`, {
+      themeId,
+      customColors,
+    });
+    return response.data;
+  }
+
+  async setActiveTheme(themeId: string, isGlobal: boolean = true) {
+    const response = await axios.post(`${API_URL}/themes/user/set-active`, {
+      themeId,
+      isGlobal
+    });
+    return response.data;
+  }
+
+  async deleteThemeCustomization(id: string) {
+    await axios.delete(`${API_URL}/themes/user/customizations/${id}`);
   }
 }
 

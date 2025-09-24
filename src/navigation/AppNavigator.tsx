@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucide-react-native';
-import { colors } from '../styles/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 // Import screens (we'll create these next)
 import ProjectsScreen from '../screens/ProjectsScreen';
@@ -33,6 +33,8 @@ const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function MainTabs() {
+  const colors = useThemeColors();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -99,6 +101,8 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
+  const colors = useThemeColors();
+
   return (
     <NavigationContainer>
       <Stack.Navigator

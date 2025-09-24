@@ -7,7 +7,7 @@ import {
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../styles/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 
 interface PrismCardProps {
   children: React.ReactNode;
@@ -16,12 +16,14 @@ interface PrismCardProps {
   disabled?: boolean;
 }
 
-export default function PrismCard({ 
-  children, 
-  onPress, 
+export default function PrismCard({
+  children,
+  onPress,
   style,
-  disabled = false 
+  disabled = false
 }: PrismCardProps) {
+  const colors = useThemeColors();
+  const styles = createStyles(colors);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -80,7 +82,7 @@ export default function PrismCard({
   return content;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     borderRadius: 12,
     backgroundColor: colors.background.card,

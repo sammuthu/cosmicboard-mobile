@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Plus } from 'lucide-react-native';
-import { colors } from '../styles/colors';
+import { useThemeColors } from '../hooks/useThemeColors';
 import PrismCard from '../components/PrismCard';
 import apiService from '../services/api';
 import { Project, Task, Reference } from '../models';
@@ -37,6 +37,8 @@ interface ProjectWithCounts extends Project {
 
 export default function ProjectsScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const colors = useThemeColors();
+  const styles = createStyles(colors);
   const [projects, setProjects] = useState<ProjectWithCounts[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -227,7 +229,7 @@ export default function ProjectsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
