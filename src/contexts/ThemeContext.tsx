@@ -33,6 +33,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
         const theme = response.data || response;  // Handle both {data: ...} and direct response
 
+        // Debug: Log the actual text colors
+        if (theme && theme.colors && theme.colors.text) {
+          console.log('Theme text colors:', JSON.stringify(theme.colors.text, null, 2));
+        }
+
         if (theme && theme.colors) {
           setActiveTheme(theme);
           // Store locally for offline access

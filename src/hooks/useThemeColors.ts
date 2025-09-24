@@ -35,12 +35,17 @@ export function useThemeColors() {
         purpleLight: themeColors.prismCard.glowGradient.from || '#A78BFA',
         blue: themeColors.status.info || '#3B82F6',
         cyan: themeColors.prismCard.glowGradient.via || '#06B6D4',
+        amber: themeColors.status.warning || '#F59E0B',
+        pink: themeColors.prismCard.glowGradient.to || '#EC4899',
       },
       status: {
         success: themeColors.status.success,
         warning: themeColors.status.warning,
         error: themeColors.status.error,
         info: themeColors.status.info,
+        active: themeColors.status.info || '#3B82F6',
+        completed: themeColors.status.success || '#10B981',
+        deleted: themeColors.status.error || '#EF4444',
       },
       ui: {
         border: themeColors.prismCard.borderColor,
