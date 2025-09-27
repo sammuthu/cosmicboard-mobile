@@ -62,4 +62,11 @@ export const colors = {
     error: '#ef4444',
     info: '#3b82f6',
   },
+
+  // Glass morphism colors
+  glass: {
+    background: 'rgba(26, 26, 46, 0.5)', // Semi-transparent secondary
+    border: 'rgba(55, 65, 81, 0.25)', // Semi-transparent border
+    hover: 'rgba(26, 26, 46, 0.58)',
+  },
 };

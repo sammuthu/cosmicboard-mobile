@@ -86,7 +86,6 @@ function MainTabs() {
           ),
           headerTitle: 'Media Gallery',
         }}
-        initialParams={{ projectId: 'all' }}
       />
       <Tab.Screen
         name="Settings"

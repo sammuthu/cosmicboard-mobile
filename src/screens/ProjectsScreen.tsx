@@ -43,6 +43,8 @@ export default function ProjectsScreen() {
   const { colors: themeColors } = useTheme();
   const styles = createStyles(colors);
   const [projects, setProjects] = useState<ProjectWithCounts[]>([]);
+  const [deletedProjects, setDeletedProjects] = useState<ProjectWithCounts[]>([]);
+  const [showDeleted, setShowDeleted] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -50,10 +52,14 @@ export default function ProjectsScreen() {
     try {
       // Initialize API service
       await apiService.init();
-      
-      // Fetch projects from API
+
+      // Fetch active projects from API
       const projectList = await apiService.getProjects();
-      
+
+      // Fetch deleted projects - commented out temporarily
+      // const deletedList = await apiService.getDeletedProjects();
+      const deletedList: any[] = [];
+
       // Use the counts from the API response
       const projectsWithCounts = projectList.map((project: any) => ({
         ...project,
@@ -73,10 +79,22 @@ export default function ProjectsScreen() {
       }));
 
       setProjects(projectsWithCounts);
+
+      // Process deleted projects
+      const deletedWithCounts = deletedList.map((project: any) => ({
+        ...project,
+        _id: project.id || project._id,
+        counts: project.counts || {
+          tasks: { active: 0, completed: 0, deleted: 0 },
+          references: { total: 0, snippets: 0, documentation: 0 },
+        },
+      }));
+      setDeletedProjects(deletedWithCounts);
     } catch (error) {
       console.error('Failed to load projects:', error);
       // For development, show empty state if API fails
       setProjects([]);
+      setDeletedProjects([]);
     } finally {
       setLoading(false);
     }
@@ -215,6 +233,27 @@ export default function ProjectsScreen() {
       ] : [colors.background.primary, colors.background.primary, colors.background.primary]}
       style={styles.container}
     >
+      {/* Temporarily commented out tab UI to fix app loading
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, !showDeleted && styles.activeTab]}
+          onPress={() => setShowDeleted(false)}
+        >
+          <Text style={[styles.tabText, !showDeleted && styles.activeTabText]}>
+            Active Projects ({projects.length})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, showDeleted && styles.activeTab]}
+          onPress={() => setShowDeleted(true)}
+        >
+          <Text style={[styles.tabText, showDeleted && styles.activeTabText]}>
+            Deleted ({deletedProjects.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
+      */}
+
       <FlatList
         data={projects}
         keyExtractor={(item) => item._id}
@@ -230,12 +269,16 @@ export default function ProjectsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No projects yet</Text>
-            <Text style={styles.emptySubtext}>Tap + to create your first project</Text>
+            <Text style={styles.emptyText}>
+              No projects yet
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Tap + to create your first project
+            </Text>
           </View>
         }
       />
-      
+
       <TouchableOpacity
         style={styles.fab}
         onPress={handleCreateProject}
@@ -249,6 +292,36 @@ export default function ProjectsScreen() {
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.ui.border,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: colors.glass.background,
+    borderWidth: 1,
+    borderColor: colors.glass.border,
+  },
+  activeTab: {
+    backgroundColor: colors.cosmic.purple,
+    borderColor: colors.cosmic.purple,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  activeTabText: {
+    color: colors.text.primary,
   },
   listContent: {
     paddingBottom: 100, // Add space for FAB and ensure scrolling

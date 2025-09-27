@@ -52,6 +52,11 @@ export function useThemeColors() {
         divider: themeColors.prismCard.borderColor,
         backdrop: 'rgba(0, 0, 0, 0.5)',
       },
+      glass: {
+        background: `${themeColors.prismCard.background.from}80`, // Semi-transparent
+        border: `${themeColors.prismCard.borderColor}40`, // Semi-transparent border
+        hover: `${themeColors.prismCard.background.from}95`,
+      },
       priorities: {
         supernova: themeColors.status.error || '#DC2626',
         stellar: themeColors.status.warning || '#F59E0B',

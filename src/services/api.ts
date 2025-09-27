@@ -92,7 +92,7 @@ class ApiService {
     
     this.token = null;
     this.refreshToken = null;
-    await Keychain.resetInternetCredentials('cosmicboard');
+    await Keychain.resetInternetCredentials({ server: 'cosmicboard' } as any);
     delete axios.defaults.headers.common['Authorization'];
   }
 
@@ -134,6 +134,11 @@ class ApiService {
     return response.data;
   }
 
+  async getDeletedProjects() {
+    const response = await axios.get(`${API_URL}/projects?deleted=true`);
+    return response.data;
+  }
+
   async getProject(id: string) {
     const response = await axios.get(`${API_URL}/projects/${id}`);
     return response.data;
@@ -155,8 +160,13 @@ class ApiService {
     return response.data;
   }
 
-  async deleteProject(id: string) {
-    await axios.delete(`${API_URL}/projects/${id}`);
+  async deleteProject(id: string, permanent: boolean = false) {
+    await axios.delete(`${API_URL}/projects/${id}${permanent ? '?permanent=true' : ''}`);
+  }
+
+  async restoreProject(id: string) {
+    const response = await axios.post(`${API_URL}/projects/${id}/restore`);
+    return response.data;
   }
 
   // Tasks

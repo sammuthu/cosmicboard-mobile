@@ -14,14 +14,14 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Plus, CheckCircle, Circle, Trash2 } from 'lucide-react-native';
+import { Plus, CheckCircle, Circle, Trash2, MoreVertical } from 'lucide-react-native';
 import { colors } from '../styles/colors';
 import PrismCard from '../components/PrismCard';
 import apiService from '../services/api';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'ProjectDetail'>;
-type RouteProp = { params: { projectId: string } };
+type RouteParams = { params: { projectId: string } };
 
 interface Task {
   id: string;
@@ -50,7 +50,7 @@ interface Project {
 }
 
 export default function ProjectDetailScreen() {
-  const route = useRoute<RouteProp>();
+  const route = useRoute() as RouteParams;
   const navigation = useNavigation<NavigationProp>();
   const { projectId } = route.params;
   
@@ -66,6 +66,7 @@ export default function ProjectDetailScreen() {
   const [newReferenceTitle, setNewReferenceTitle] = useState('');
   const [newReferenceContent, setNewReferenceContent] = useState('');
   const [newReferenceCategory, setNewReferenceCategory] = useState<'DOCUMENTATION' | 'SNIPPET' | 'CONFIGURATION' | 'TOOLS' | 'API' | 'TUTORIAL' | 'REFERENCE'>('SNIPPET');
+  const [showActionSheet, setShowActionSheet] = useState(false);
 
   useEffect(() => {
     loadProjectData();
@@ -160,7 +161,7 @@ export default function ProjectDetailScreen() {
         await apiService.createTask(projectId, {
           title: newTaskContent.trim(),
           content: newTaskContent.trim(),
-          priority: 'MEDIUM',
+          priority: 'STELLAR',
           status: 'ACTIVE',
         });
         setNewTaskContent('');
@@ -179,7 +180,7 @@ export default function ProjectDetailScreen() {
         await apiService.createReference(projectId, {
           title: newReferenceTitle.trim(),
           content: newReferenceContent.trim(),
-          category: newReferenceCategory.toLowerCase(),
+          category: newReferenceCategory.toLowerCase() as 'snippet' | 'documentation',
         });
         setNewReferenceTitle('');
         setNewReferenceContent('');
@@ -281,10 +282,20 @@ export default function ProjectDetailScreen() {
       {/* Header with project name */}
       {project && (
         <View style={styles.header}>
-          <Text style={styles.projectName}>{project.name}</Text>
-          {project.description && (
-            <Text style={styles.projectDescription}>{project.description}</Text>
-          )}
+          <View style={styles.headerRow}>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.projectName}>{project.name}</Text>
+              {project.description && (
+                <Text style={styles.projectDescription}>{project.description}</Text>
+              )}
+            </View>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setShowActionSheet(true)}
+            >
+              <MoreVertical color={colors.text.secondary} size={24} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -482,6 +493,62 @@ export default function ProjectDetailScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Action Sheet Modal */}
+      <Modal
+        visible={showActionSheet}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowActionSheet(false)}
+      >
+        <TouchableOpacity
+          style={styles.actionSheetOverlay}
+          activeOpacity={1}
+          onPress={() => setShowActionSheet(false)}
+        >
+          <View style={styles.actionSheetContainer}>
+            <View style={styles.actionSheetContent}>
+              <TouchableOpacity
+                style={styles.actionSheetItem}
+                onPress={() => {
+                  setShowActionSheet(false);
+                  Alert.alert(
+                    'Delete Project',
+                    'Are you sure you want to delete this project?',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            await apiService.deleteProject(projectId);
+                            navigation.goBack();
+                          } catch (error) {
+                            Alert.alert('Error', 'Failed to delete project');
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }}
+              >
+                <Trash2 color={colors.status.deleted} size={20} />
+                <Text style={[styles.actionSheetItemText, { color: colors.status.deleted }]}>
+                  Delete Project
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionSheetItem, styles.actionSheetCancel]}
+                onPress={() => setShowActionSheet(false)}
+              >
+                <Text style={styles.actionSheetItemText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -508,6 +575,18 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.ui.divider,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerTextContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  menuButton: {
+    padding: 8,
   },
   projectName: {
     fontSize: 24,
@@ -753,6 +832,37 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   modalButtonTextPrimary: {
+    color: colors.text.primary,
+  },
+  actionSheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  actionSheetContainer: {
+    paddingBottom: 20,
+  },
+  actionSheetContent: {
+    backgroundColor: colors.background.primary,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 12,
+  },
+  actionSheetItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  actionSheetCancel: {
+    borderTopWidth: 1,
+    borderTopColor: colors.ui.divider,
+    marginTop: 8,
+  },
+  actionSheetItemText: {
+    fontSize: 17,
+    fontWeight: '500',
     color: colors.text.primary,
   },
 });
