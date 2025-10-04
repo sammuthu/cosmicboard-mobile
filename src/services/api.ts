@@ -160,6 +160,11 @@ class ApiService {
     return response.data;
   }
 
+  async updateProjectPriority(id: string, priority: string) {
+    const response = await axios.patch(`${API_URL}/projects/${id}/priority`, { priority });
+    return response.data;
+  }
+
   async deleteProject(id: string, permanent: boolean = false) {
     await axios.delete(`${API_URL}/projects/${id}${permanent ? '?permanent=true' : ''}`);
   }
