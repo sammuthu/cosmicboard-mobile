@@ -336,19 +336,19 @@ export default function ProjectsScreen() {
       ] : [colors.background.primary, colors.background.primary, colors.background.primary]}
       style={styles.container}
     >
-      {/* Header with Avatar and Filter */}
+      {/* Modern Social Media Style Header */}
       <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Projects</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => setShowFilterModal(true)}
-          >
-            <Filter color={colors.cosmic.purple} size={24} />
-            {priorityFilter !== 'ALL' && <View style={styles.filterBadge} />}
-          </TouchableOpacity>
-          <UserAvatar size={36} showEditButton={true} />
+        <View style={styles.headerLeft}>
+          <UserAvatar size={40} showEditButton={true} />
+          <Text style={styles.headerTitle}>Cosmic Space</Text>
         </View>
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setShowFilterModal(true)}
+        >
+          <Filter color={colors.cosmic.purple} size={24} />
+          {priorityFilter !== 'ALL' && <View style={styles.filterBadge} />}
+        </TouchableOpacity>
       </View>
 
       {/* Filter Modal */}
@@ -628,23 +628,27 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.ui.border,
+    backgroundColor: colors.background.secondary,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-  },
-  headerActions: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text.primary,
   },
   filterButton: {
     padding: 8,
     position: 'relative',
+    marginLeft: 8,
   },
   filterBadge: {
     position: 'absolute',
