@@ -338,7 +338,7 @@ export default function ProjectsScreen() {
     >
       {/* Modern Social Media Style Header */}
       <View style={styles.headerContainer}>
-        <View style={styles.headerLeft}>
+        <View style={styles.headerLeft} pointerEvents="box-none">
           <UserAvatar size={40} showEditButton={true} />
           <Text style={styles.headerTitle}>Cosmic Space</Text>
         </View>

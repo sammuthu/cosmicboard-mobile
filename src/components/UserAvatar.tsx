@@ -166,10 +166,12 @@ export default function UserAvatar({ size = 40, showEditButton = false }: UserAv
     <>
       <TouchableOpacity
         onPress={() => {
+          console.log('UserAvatar: Avatar tapped!');
           setShowModal(true);
           loadAvatarHistory();
         }}
-        style={styles.avatarWrapper}
+        activeOpacity={0.7}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <View style={[styles.avatarContainer, { width: size, height: size }]}>
           {user?.avatar ? (
@@ -201,7 +203,7 @@ export default function UserAvatar({ size = 40, showEditButton = false }: UserAv
       <Modal
         visible={showModal}
         animationType="slide"
-        transparent
+        transparent={true}
         onRequestClose={() => setShowModal(false)}
       >
         <View style={styles.modalOverlay}>
