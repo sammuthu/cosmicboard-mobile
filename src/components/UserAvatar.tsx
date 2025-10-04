@@ -43,6 +43,8 @@ export default function UserAvatar({ size = 40, showEditButton = false }: UserAv
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
+  console.log('UserAvatar: Rendering with size:', size, 'loading:', loading, 'user:', user);
+
   useEffect(() => {
     loadUser();
   }, []);
@@ -50,9 +52,16 @@ export default function UserAvatar({ size = 40, showEditButton = false }: UserAv
   const loadUser = async () => {
     try {
       const userData = await apiService.getCurrentUser();
+      console.log('UserAvatar: Loaded user data:', userData);
       setUser(userData);
     } catch (error) {
-      console.error('Failed to load user:', error);
+      console.error('UserAvatar: Failed to load user:', error);
+      // Set a fallback user for development
+      setUser({
+        id: 'dev-user',
+        email: 'nmuthu@gmail.com',
+        name: 'Dev User',
+      });
     } finally {
       setLoading(false);
     }
