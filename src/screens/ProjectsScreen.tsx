@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -328,28 +329,38 @@ export default function ProjectsScreen() {
   }
 
   return (
-    <LinearGradient
-      colors={themeColors ? [
-        themeColors.parentBackground.from,
-        themeColors.parentBackground.via,
-        themeColors.parentBackground.to
-      ] : [colors.background.primary, colors.background.primary, colors.background.primary]}
-      style={styles.container}
-    >
-      {/* Modern Social Media Style Header */}
-      <View style={styles.headerContainer}>
-        <View style={styles.headerLeft} pointerEvents="box-none">
-          <UserAvatar size={40} showEditButton={true} />
-          <Text style={styles.headerTitle}>Cosmic Space</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.secondary }}>
+      <LinearGradient
+        colors={themeColors ? [
+          themeColors.parentBackground.from,
+          themeColors.parentBackground.via,
+          themeColors.parentBackground.to
+        ] : [colors.background.primary, colors.background.primary, colors.background.primary]}
+        style={styles.container}
+      >
+        {/* Modern Social Media Style Header - Instagram Layout */}
+        <View style={styles.headerContainer}>
+          {/* Left: Avatar */}
+          <UserAvatar size={36} showEditButton={true} />
+
+          {/* Center: Title */}
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle} numberOfLines={1}>Cosmic Space</Text>
+          </View>
+
+          {/* Right: Filter */}
+          <TouchableOpacity
+            onPress={() => {
+              console.log('Filter button tapped!');
+              setShowFilterModal(true);
+            }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Filter color={colors.cosmic.purple} size={24} />
+            {priorityFilter !== 'ALL' && <View style={styles.filterBadge} />}
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowFilterModal(true)}
-        >
-          <Filter color={colors.cosmic.purple} size={24} />
-          {priorityFilter !== 'ALL' && <View style={styles.filterBadge} />}
-        </TouchableOpacity>
-      </View>
 
       {/* Filter Modal */}
       <Modal
@@ -472,7 +483,8 @@ export default function ProjectsScreen() {
       >
         <Plus color={colors.text.primary} size={24} />
       </TouchableOpacity>
-    </LinearGradient>
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
@@ -625,30 +637,26 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.ui.border,
     backgroundColor: colors.background.secondary,
+    zIndex: 10,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  headerCenter: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 12,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: colors.text.primary,
-  },
-  filterButton: {
-    padding: 8,
-    position: 'relative',
-    marginLeft: 8,
+    textAlign: 'center',
   },
   filterBadge: {
     position: 'absolute',
