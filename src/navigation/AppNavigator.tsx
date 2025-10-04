@@ -65,16 +65,7 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <FolderOpen color={color} size={size} />
           ),
-          headerTitle: () => (
-            <Text style={{ color: colors.text.primary, fontSize: 18, fontWeight: 'bold' }}>
-              Cosmic Space
-            </Text>
-          ),
-          headerRight: () => (
-            <View style={{ marginRight: 16 }}>
-              <UserAvatar size={36} showEditButton={true} />
-            </View>
-          ),
+          headerShown: false, // Hide header since ProjectsScreen has its own
         }}
       />
       <Tab.Screen

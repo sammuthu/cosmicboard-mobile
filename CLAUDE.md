@@ -34,18 +34,22 @@ Do NOT place nginx, hosts, or dnsmasq configurations in individual project folde
 ## Common Development Commands
 
 ```bash
-# Start development server
+# Start development server (Expo only)
 npm start
 
-# Run on iOS simulator
+# Start with backend (recommended for development)
+npm run dev              # Start backend + Expo dev server
+npm run dev:ios          # Start backend + iOS simulator
+npm run dev:android      # Start backend + Android emulator
+npm run dev:web          # Start backend + web
+
+# Platform-specific runs (Expo only, no backend)
 npm run ios
-
-# Run on Android emulator
 npm run android
-
-# Run on web
 npm run web
 ```
+
+**Note**: The `dev` scripts automatically start the backend server from `../cosmicboard-backend` and wait for it to be healthy on port 7778 before launching the mobile app. Backend expects health check at `http://localhost:7778/api/health`.
 
 ## Project Architecture
 

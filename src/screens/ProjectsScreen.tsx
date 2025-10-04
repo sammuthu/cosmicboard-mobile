@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTheme } from '../contexts/ThemeContext';
 import PrismCard from '../components/PrismCard';
+import UserAvatar from '../components/UserAvatar';
 import apiService from '../services/api';
 import { Project, Task, Reference } from '../models';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -335,16 +336,19 @@ export default function ProjectsScreen() {
       ] : [colors.background.primary, colors.background.primary, colors.background.primary]}
       style={styles.container}
     >
-      {/* Filter Button in Header */}
+      {/* Header with Avatar and Filter */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Projects</Text>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowFilterModal(true)}
-        >
-          <Filter color={colors.cosmic.purple} size={24} />
-          {priorityFilter !== 'ALL' && <View style={styles.filterBadge} />}
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setShowFilterModal(true)}
+          >
+            <Filter color={colors.cosmic.purple} size={24} />
+            {priorityFilter !== 'ALL' && <View style={styles.filterBadge} />}
+          </TouchableOpacity>
+          <UserAvatar size={36} showEditButton={true} />
+        </View>
       </View>
 
       {/* Filter Modal */}
@@ -632,6 +636,11 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: colors.text.primary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   filterButton: {
     padding: 8,
