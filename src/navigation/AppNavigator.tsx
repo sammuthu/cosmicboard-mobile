@@ -1,9 +1,11 @@
 import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
+import UserAvatar from '../components/UserAvatar';
 
 // Import screens (we'll create these next)
 import ProjectsScreen from '../screens/ProjectsScreen';
@@ -63,7 +65,16 @@ function MainTabs() {
           tabBarIcon: ({ color, size }) => (
             <FolderOpen color={color} size={size} />
           ),
-          headerTitle: 'Cosmic Space',
+          headerTitle: () => (
+            <Text style={{ color: colors.text.primary, fontSize: 18, fontWeight: 'bold' }}>
+              Cosmic Space
+            </Text>
+          ),
+          headerRight: () => (
+            <View style={{ marginRight: 16 }}>
+              <UserAvatar size={36} showEditButton={true} />
+            </View>
+          ),
         }}
       />
       <Tab.Screen

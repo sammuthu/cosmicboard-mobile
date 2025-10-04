@@ -243,11 +243,54 @@ class ApiService {
     return response.data;
   }
 
+  async getCurrentUser() {
+    const response = await axios.get(`${API_URL}/auth/me`);
+    return response.data;
+  }
+
   async updateProfile(data: {
     name?: string;
     email?: string;
+    username?: string;
+    bio?: string;
   }) {
-    const response = await axios.put(`${API_URL}/user/profile`, data);
+    const response = await axios.patch(`${API_URL}/auth/me`, data);
+    return response.data;
+  }
+
+  // Avatar Management
+  async uploadProfilePicture(file: {
+    uri: string;
+    type: string;
+    name: string;
+  }) {
+    const formData = new FormData();
+    formData.append('file', {
+      uri: file.uri,
+      type: file.type,
+      name: file.name,
+    } as any);
+
+    const response = await axios.post(`${API_URL}/auth/profile-picture`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  }
+
+  async getAvatarHistory() {
+    const response = await axios.get(`${API_URL}/auth/avatar-history`);
+    return response.data;
+  }
+
+  async setActiveAvatar(avatarId: string) {
+    const response = await axios.patch(`${API_URL}/auth/avatar/${avatarId}/activate`, {});
+    return response.data;
+  }
+
+  async deleteAvatar(avatarId: string) {
+    const response = await axios.delete(`${API_URL}/auth/avatar/${avatarId}`);
     return response.data;
   }
 
