@@ -341,7 +341,7 @@ export default function ProjectsScreen() {
         {/* Modern Social Media Style Header - Instagram Layout */}
         <View style={styles.headerContainer}>
           {/* Left: Avatar */}
-          <UserAvatar size={36} showEditButton={true} />
+          <UserAvatar size={36} showEditButton={false} />
 
           {/* Center: Title */}
           <View style={styles.headerCenter}>
