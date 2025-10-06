@@ -11,23 +11,30 @@ import {
   Alert,
   Modal,
   TextInput,
+  Platform,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Plus, CheckCircle, Circle, Trash2, MoreVertical } from 'lucide-react-native';
 import { colors } from '../styles/colors';
 import PrismCard from '../components/PrismCard';
+import DateInput from '../components/DateInput';
 import apiService from '../services/api';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'ProjectDetail'>;
-type RouteParams = { params: { projectId: string } };
+type RouteParams = { params: { projectId: string; tab?: string } };
 
 interface Task {
   id: string;
+  title?: string;
   content: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'SUPERNOVA' | 'STELLAR' | 'NEBULA';
   status: 'ACTIVE' | 'COMPLETED' | 'DELETED';
+  tags?: string[];
+  dueDate?: string;
   createdAt: string;
   completedAt?: string;
 }
@@ -52,9 +59,18 @@ interface Project {
 export default function ProjectDetailScreen() {
   const route = useRoute() as RouteParams;
   const navigation = useNavigation<NavigationProp>();
-  const { projectId } = route.params;
-  
-  const [activeTab, setActiveTab] = useState<'tasks' | 'references' | 'media'>('tasks');
+  const { projectId, tab } = route.params;
+
+  // Map web tab names to mobile tab names
+  const getInitialTab = (): 'tasks' | 'references' | 'media' => {
+    if (!tab) return 'tasks';
+    if (tab === 'radar') return 'tasks';
+    if (tab === 'neural-notes') return 'references';
+    if (tab === 'moments' || tab === 'snaps' || tab === 'scrolls') return 'media';
+    return 'tasks';
+  };
+
+  const [activeTab, setActiveTab] = useState<'tasks' | 'references' | 'media'>(getInitialTab());
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
@@ -62,7 +78,11 @@ export default function ProjectDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showReferenceModal, setShowReferenceModal] = useState(false);
-  const [newTaskContent, setNewTaskContent] = useState('');
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [newTaskPriority, setNewTaskPriority] = useState<'SUPERNOVA' | 'STELLAR' | 'NEBULA'>('STELLAR');
+  const [newTaskDueDate, setNewTaskDueDate] = useState<Date | undefined>(undefined);
+  const [newTaskTags, setNewTaskTags] = useState('');
   const [newReferenceTitle, setNewReferenceTitle] = useState('');
   const [newReferenceContent, setNewReferenceContent] = useState('');
   const [newReferenceCategory, setNewReferenceCategory] = useState<'DOCUMENTATION' | 'SNIPPET' | 'CONFIGURATION' | 'TOOLS' | 'API' | 'TUTORIAL' | 'REFERENCE'>('SNIPPET');
@@ -156,15 +176,24 @@ export default function ProjectDetailScreen() {
   };
 
   const createTask = async () => {
-    if (newTaskContent.trim()) {
+    if (newTaskTitle.trim()) {
       try {
+        const tags = newTaskTags.trim() ? newTaskTags.split(',').map(t => t.trim()).filter(Boolean) : [];
+
         await apiService.createTask(projectId, {
-          title: newTaskContent.trim(),
-          content: newTaskContent.trim(),
-          priority: 'STELLAR',
+          title: newTaskTitle.trim(),
+          content: newTaskDescription.trim() || newTaskTitle.trim(),
+          priority: newTaskPriority,
           status: 'ACTIVE',
+          tags,
+          dueDate: newTaskDueDate ? newTaskDueDate.toISOString() : undefined
         });
-        setNewTaskContent('');
+
+        setNewTaskTitle('');
+        setNewTaskDescription('');
+        setNewTaskPriority('STELLAR');
+        setNewTaskDueDate(undefined);
+        setNewTaskTags('');
         setShowTaskModal(false);
         loadProjectData();
       } catch (error) {
@@ -188,14 +217,18 @@ export default function ProjectDetailScreen() {
         setShowReferenceModal(false);
         loadProjectData();
       } catch (error) {
-        console.error('Failed to create reference:', error);
-        Alert.alert('Error', 'Failed to create reference');
+        console.error('Failed to create neural note:', error);
+        Alert.alert('Error', 'Failed to create neural note');
       }
     }
   };
 
   const renderTask = ({ item }: { item: Task }) => {
     const priorityColors = {
+      SUPERNOVA: colors.priority.supernova,
+      STELLAR: colors.cosmic.cyan,
+      NEBULA: colors.cosmic.amber,
+      // Legacy support
       LOW: colors.cosmic.amber,
       MEDIUM: colors.cosmic.cyan,
       HIGH: colors.cosmic.purple,
@@ -203,37 +236,76 @@ export default function ProjectDetailScreen() {
     };
 
     return (
-      <PrismCard style={styles.taskCard}>
-        <View style={styles.taskRow}>
-          <TouchableOpacity onPress={() => toggleTaskStatus(item)}>
-            {item.status === 'COMPLETED' ? (
-              <CheckCircle color={colors.status.completed} size={24} />
-            ) : (
-              <Circle color={colors.text.secondary} size={24} />
-            )}
-          </TouchableOpacity>
-          
-          <View style={styles.taskContent}>
-            <Text style={[
-              styles.taskText,
-              item.status === 'COMPLETED' && styles.taskCompleted
-            ]}>
-              {item.content}
-            </Text>
-            <View style={styles.taskMeta}>
-              <View style={[styles.priorityBadge, { backgroundColor: priorityColors[item.priority] + '20' }]}>
-                <Text style={[styles.priorityText, { color: priorityColors[item.priority] }]}>
-                  {item.priority}
+      <TouchableOpacity
+        onPress={() => {
+          navigation.navigate('TaskDetail', { taskId: item.id, projectId });
+        }}
+        activeOpacity={0.7}
+      >
+        <PrismCard style={styles.taskCard}>
+          <View style={styles.taskRow}>
+            <TouchableOpacity onPress={() => toggleTaskStatus(item)}>
+              {item.status === 'COMPLETED' ? (
+                <CheckCircle color={colors.status.completed} size={24} />
+              ) : (
+                <Circle color={colors.text.secondary} size={24} />
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.taskContent}>
+              <Text style={[
+                styles.taskText,
+                item.status === 'COMPLETED' && styles.taskCompleted
+              ]}>
+                {item.content}
+              </Text>
+
+              {/* Show title if different from content */}
+              {item.title && item.content !== item.title && (
+                <Text style={[styles.taskDescription, item.status === 'COMPLETED' && styles.taskCompleted]}>
+                  {item.title}
                 </Text>
+              )}
+
+              <View style={styles.taskMeta}>
+                <View style={[styles.priorityBadge, { backgroundColor: (priorityColors[item.priority] || colors.cosmic.cyan) + '20' }]}>
+                  <Text style={[styles.priorityText, { color: priorityColors[item.priority] || colors.cosmic.cyan }]}>
+                    {item.priority === 'SUPERNOVA' ? '🌟' : item.priority === 'STELLAR' ? '⭐' : '☁️'} {item.priority}
+                  </Text>
+                </View>
+
+                {item.dueDate && (
+                  <Text style={styles.dueDateText}>
+                    📅 {(() => {
+                      const [year, month, day] = item.dueDate.split('T')[0].split('-')
+                      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day))
+                      return format(date, 'MMM d, yyyy')
+                    })()}
+                  </Text>
+                )}
               </View>
+
+              {/* Tags */}
+              {item.tags && item.tags.length > 0 && (
+                <View style={styles.tagsContainer}>
+                  {item.tags.slice(0, 3).map((tag: string, index: number) => (
+                    <View key={index} style={styles.tag}>
+                      <Text style={styles.tagText}>{tag}</Text>
+                    </View>
+                  ))}
+                  {item.tags.length > 3 && (
+                    <Text style={styles.moreTagsText}>+{item.tags.length - 3} more</Text>
+                  )}
+                </View>
+              )}
             </View>
+
+            <TouchableOpacity onPress={() => deleteTask(item.id)}>
+              <Trash2 color={colors.status.deleted} size={20} />
+            </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity onPress={() => deleteTask(item.id)}>
-            <Trash2 color={colors.status.deleted} size={20} />
-          </TouchableOpacity>
-        </View>
-      </PrismCard>
+        </PrismCard>
+      </TouchableOpacity>
     );
   };
 
@@ -306,7 +378,7 @@ export default function ProjectDetailScreen() {
           onPress={() => setActiveTab('tasks')}
         >
           <Text style={[styles.tabText, activeTab === 'tasks' && styles.activeTabText]}>
-            Tasks ({tasks.filter(t => t.status === 'ACTIVE').length})
+            Radar ({tasks.filter(t => t.status === 'ACTIVE').length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -314,7 +386,7 @@ export default function ProjectDetailScreen() {
           onPress={() => setActiveTab('references')}
         >
           <Text style={[styles.tabText, activeTab === 'references' && styles.activeTabText]}>
-            References ({references.length})
+            Neural Notes ({references.length})
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -344,8 +416,8 @@ export default function ProjectDetailScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No tasks yet</Text>
-              <Text style={styles.emptySubtext}>Tap + to create your first task</Text>
+              <Text style={styles.emptyText}>No items on your radar yet</Text>
+              <Text style={styles.emptySubtext}>Tap + to add your first task</Text>
             </View>
           }
         />
@@ -365,8 +437,8 @@ export default function ProjectDetailScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No references yet</Text>
-              <Text style={styles.emptySubtext}>Tap + to add your first reference</Text>
+              <Text style={styles.emptyText}>No neural notes yet</Text>
+              <Text style={styles.emptySubtext}>Tap + to add your first neural note</Text>
             </View>
           }
         />
@@ -389,21 +461,80 @@ export default function ProjectDetailScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Task</Text>
+            <Text style={styles.modalTitle}>Create New Task</Text>
+
+            {/* Task Title */}
             <TextInput
               style={styles.modalInput}
-              placeholder="Enter task description..."
+              placeholder="Task Title"
               placeholderTextColor={colors.text.secondary}
-              value={newTaskContent}
-              onChangeText={setNewTaskContent}
-              multiline
+              value={newTaskTitle}
+              onChangeText={setNewTaskTitle}
               autoFocus
             />
+
+            {/* Task Description */}
+            <TextInput
+              style={[styles.modalInput, styles.modalTextArea]}
+              placeholder="Task description..."
+              placeholderTextColor={colors.text.secondary}
+              value={newTaskDescription}
+              onChangeText={setNewTaskDescription}
+              multiline
+              numberOfLines={4}
+            />
+
+            {/* Priority Selection */}
+            <Text style={styles.modalLabel}>Priority</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+              <View style={styles.categoryContainer}>
+                {(['SUPERNOVA', 'STELLAR', 'NEBULA'] as const).map((priority) => (
+                  <TouchableOpacity
+                    key={priority}
+                    style={[
+                      styles.categoryChip,
+                      newTaskPriority === priority && styles.categoryChipActive
+                    ]}
+                    onPress={() => setNewTaskPriority(priority)}
+                  >
+                    <Text style={[
+                      styles.categoryChipText,
+                      newTaskPriority === priority && styles.categoryChipTextActive
+                    ]}>
+                      {priority === 'SUPERNOVA' ? '🌟 SuperNova' : priority === 'STELLAR' ? '⭐ Stellar' : '☁️ Nebula'}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            {/* Due Date */}
+            <Text style={styles.modalLabel}>Due Date</Text>
+            <DateInput
+              value={newTaskDueDate}
+              onChange={setNewTaskDueDate}
+              placeholder="MM/DD/YYYY"
+              style={{ marginBottom: 12 }}
+            />
+
+            {/* Tags */}
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Tags (comma separated, e.g., #urgent, #backend, #api)"
+              placeholderTextColor={colors.text.secondary}
+              value={newTaskTags}
+              onChangeText={setNewTaskTags}
+            />
+
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonCancel]}
                 onPress={() => {
-                  setNewTaskContent('');
+                  setNewTaskTitle('');
+                  setNewTaskDescription('');
+                  setNewTaskPriority('STELLAR');
+                  setNewTaskDueDate(undefined);
+                  setNewTaskTags('');
                   setShowTaskModal(false);
                 }}
               >
@@ -413,14 +544,14 @@ export default function ProjectDetailScreen() {
                 style={[styles.modalButton, styles.modalButtonPrimary]}
                 onPress={createTask}
               >
-                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Create</Text>
+                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>Create Task</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* Reference Modal */}
+      {/* Neural Note Modal */}
       <Modal
         visible={showReferenceModal}
         animationType="slide"
@@ -429,7 +560,7 @@ export default function ProjectDetailScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Reference</Text>
+            <Text style={styles.modalTitle}>New Neural Note</Text>
             <TextInput
               style={styles.modalInput}
               placeholder="Enter title..."
@@ -654,6 +785,46 @@ const styles = StyleSheet.create({
   priorityText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  taskDescription: {
+    fontSize: 13,
+    color: colors.text.secondary,
+    marginTop: 4,
+  },
+  dueDateText: {
+    fontSize: 12,
+    color: colors.text.secondary,
+  },
+  dateText: {
+    fontSize: 14,
+    color: colors.text.primary,
+  },
+  datePlaceholder: {
+    fontSize: 14,
+    color: colors.text.secondary,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6,
+  },
+  tag: {
+    backgroundColor: colors.glass.background,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.glass.border,
+  },
+  tagText: {
+    fontSize: 11,
+    color: colors.text.secondary,
+  },
+  moreTagsText: {
+    fontSize: 11,
+    color: colors.text.muted,
+    alignSelf: 'center',
   },
   referenceCard: {
     marginHorizontal: 16,

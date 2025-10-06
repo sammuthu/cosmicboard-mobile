@@ -30,12 +30,22 @@ type Priority = 'SUPERNOVA' | 'STELLAR' | 'NEBULA';
 interface ProjectWithCounts extends Project {
   priority?: Priority;
   counts: {
-    tasks: {
+    radar?: {
+      created: number;
+      inProgress: number;
+      completed: number;
+    };
+    neuralNotes?: number;
+    moments?: number;
+    snaps?: number;
+    scrolls?: number;
+    // Legacy support
+    tasks?: {
       active: number;
       completed: number;
       deleted: number;
     };
-    references: {
+    references?: {
       total: number;
       snippets: number;
       documentation: number;
@@ -87,6 +97,16 @@ export default function ProjectsScreen() {
         ...project,
         _id: project.id || project._id, // Handle both id formats
         counts: project.counts || {
+          radar: {
+            created: 0,
+            inProgress: 0,
+            completed: 0,
+          },
+          neuralNotes: 0,
+          moments: 0,
+          snaps: 0,
+          scrolls: 0,
+          // Legacy support
           tasks: {
             active: 0,
             completed: 0,
@@ -107,6 +127,11 @@ export default function ProjectsScreen() {
         ...project,
         _id: project.id || project._id,
         counts: project.counts || {
+          radar: { created: 0, inProgress: 0, completed: 0 },
+          neuralNotes: 0,
+          moments: 0,
+          snaps: 0,
+          scrolls: 0,
           tasks: { active: 0, completed: 0, deleted: 0 },
           references: { total: 0, snippets: 0, documentation: 0 },
         },
@@ -199,13 +224,24 @@ export default function ProjectsScreen() {
   }, [projects, priorityFilter, sortByPriority]);
 
   const renderProject = ({ item }: { item: ProjectWithCounts }) => {
-    const totalTasks = item.counts.tasks.active + item.counts.tasks.completed;
-    const progress = totalTasks > 0
-      ? (item.counts.tasks.completed / totalTasks) * 100
-      : 0;
-
     const currentPriority = item.priority || 'NEBULA';
     const isPriorityMenuOpen = showPriorityMenu === item._id;
+
+    // Support both new and old data structures
+    const radar = item.counts.radar || {
+      created: item.counts.tasks?.active || 0,
+      inProgress: 0,
+      completed: item.counts.tasks?.completed || 0
+    };
+
+    const neuralNotes = item.counts.neuralNotes ?? 0;
+    const moments = item.counts.moments ?? 0;
+    const snaps = item.counts.snaps ?? 0;
+    const scrolls = item.counts.scrolls ?? 0;
+
+    const handleAssetClick = (tab: string) => {
+      navigation.navigate('ProjectDetail', { projectId: item._id, tab });
+    };
 
     return (
       <PrismCard
@@ -248,65 +284,67 @@ export default function ProjectsScreen() {
           <Text style={styles.projectDescription}>{item.description}</Text>
         )}
 
-        <View style={styles.progressContainer}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Progress</Text>
-            <Text style={styles.progressValue}>{Math.round(progress)}%</Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View 
-              style={[
-                styles.progressFill, 
-                { width: `${progress}%` }
-              ]} 
-            />
-          </View>
-        </View>
+        {/* Compact asset counts in one row */}
+        <View style={styles.assetCountsContainer}>
+          {/* Radar (Tasks) - Total count */}
+          <TouchableOpacity
+            onPress={() => handleAssetClick('radar')}
+            style={[styles.assetPill, { borderColor: colors.status.active + '40' }]}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.assetEmoji}>📌</Text>
+            <Text style={[styles.assetCount, { color: colors.status.active }]}>
+              {radar.created + radar.inProgress + radar.completed}
+            </Text>
+          </TouchableOpacity>
 
-        <View style={styles.statsGrid}>
-          <View style={[styles.statsColumn, styles.statsBorder]}>
-            <Text style={styles.statsTitle}>TASKS</Text>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Active</Text>
-              <Text style={[styles.statValue, { color: colors.status.active }]}>
-                {item.counts.tasks.active}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Done</Text>
-              <Text style={[styles.statValue, { color: colors.status.completed }]}>
-                {item.counts.tasks.completed}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Deleted</Text>
-              <Text style={[styles.statValue, { color: colors.status.deleted }]}>
-                {item.counts.tasks.deleted}
-              </Text>
-            </View>
-          </View>
+          {/* Neural Notes */}
+          <TouchableOpacity
+            onPress={() => handleAssetClick('neural-notes')}
+            style={[styles.assetPill, { borderColor: colors.cosmic.purple + '40' }]}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.assetEmoji}>🧠</Text>
+            <Text style={[styles.assetCount, { color: colors.cosmic.purple }]}>
+              {neuralNotes}
+            </Text>
+          </TouchableOpacity>
 
-          <View style={styles.statsColumn}>
-            <Text style={styles.statsTitle}>REFERENCES</Text>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Total</Text>
-              <Text style={[styles.statValue, { color: colors.cosmic.purple }]}>
-                {item.counts.references.total}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Snippets</Text>
-              <Text style={[styles.statValue, { color: colors.cosmic.cyan }]}>
-                {item.counts.references.snippets}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Docs</Text>
-              <Text style={[styles.statValue, { color: colors.cosmic.amber }]}>
-                {item.counts.references.documentation}
-              </Text>
-            </View>
-          </View>
+          {/* Moments */}
+          <TouchableOpacity
+            onPress={() => handleAssetClick('moments')}
+            style={[styles.assetPill, { borderColor: '#ec4899' + '40' }]}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.assetEmoji}>📸</Text>
+            <Text style={[styles.assetCount, { color: '#ec4899' }]}>
+              {moments}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Snaps */}
+          <TouchableOpacity
+            onPress={() => handleAssetClick('snaps')}
+            style={[styles.assetPill, { borderColor: colors.cosmic.cyan + '40' }]}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.assetEmoji}>📎</Text>
+            <Text style={[styles.assetCount, { color: colors.cosmic.cyan }]}>
+              {snaps}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Scrolls */}
+          <TouchableOpacity
+            onPress={() => handleAssetClick('scrolls')}
+            style={[styles.assetPill, { borderColor: colors.cosmic.amber + '40' }]}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.assetEmoji}>📄</Text>
+            <Text style={[styles.assetCount, { color: colors.cosmic.amber }]}>
+              {scrolls}
+            </Text>
+          </TouchableOpacity>
         </View>
       </PrismCard>
     );
@@ -536,64 +574,28 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.text.secondary,
     marginBottom: 12,
   },
-  progressContainer: {
-    marginBottom: 16,
-  },
-  progressHeader: {
+  assetCountsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
   },
-  progressLabel: {
-    fontSize: 14,
-    color: colors.text.secondary,
-  },
-  progressValue: {
-    fontSize: 14,
-    color: colors.cosmic.purple,
-    fontWeight: '600',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: colors.ui.border,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.cosmic.purple,
-    borderRadius: 4,
-  },
-  statsGrid: {
+  assetPill: {
     flexDirection: 'row',
-    gap: 16,
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: colors.glass.background,
+    borderWidth: 1,
   },
-  statsColumn: {
-    flex: 1,
-  },
-  statsBorder: {
-    borderRightWidth: 1,
-    borderRightColor: colors.ui.divider,
-    paddingRight: 16,
-  },
-  statsTitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.text.secondary,
-    marginBottom: 8,
-  },
-  statItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: colors.text.muted,
-  },
-  statValue: {
+  assetEmoji: {
     fontSize: 16,
-    fontWeight: 'bold',
+  },
+  assetCount: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,

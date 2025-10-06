@@ -19,7 +19,7 @@ import ThemeCustomizationScreen from '../screens/ThemeCustomizationScreen';
 
 export type RootStackParamList = {
   MainTabs: undefined;
-  ProjectDetail: { projectId: string };
+  ProjectDetail: { projectId: string; tab?: string };
   TaskDetail: { taskId: string; projectId: string };
   ReferenceDetail: { reference: any };
   MediaScreen: { projectId: string };
