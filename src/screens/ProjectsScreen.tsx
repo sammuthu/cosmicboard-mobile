@@ -9,8 +9,8 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Plus, Filter, X } from 'lucide-react-native';
@@ -367,7 +367,7 @@ export default function ProjectsScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.secondary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background.secondary }} edges={['top']}>
       <LinearGradient
         colors={themeColors ? [
           themeColors.parentBackground.from,
