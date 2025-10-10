@@ -78,7 +78,7 @@ export default function ProjectsScreen() {
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'ALL'>('ALL');
   const [showPriorityMenu, setShowPriorityMenu] = useState<string | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [sortByPriority, setSortByPriority] = useState(true);
+  const [sortOrder, setSortOrder] = useState<'date-new' | 'date-old'>('date-new');
 
   const loadProjects = async () => {
     try {
@@ -210,18 +210,15 @@ export default function ProjectsScreen() {
       });
     }
 
-    // Apply sorting
-    if (sortByPriority) {
-      filtered.sort((a, b) => {
-        const priorityOrder = { SUPERNOVA: 3, STELLAR: 2, NEBULA: 1 };
-        const aPriority = a.priority || 'NEBULA';
-        const bPriority = b.priority || 'NEBULA';
-        return priorityOrder[bPriority] - priorityOrder[aPriority];
-      });
-    }
+    // Apply date sorting
+    filtered.sort((a, b) => {
+      const aDate = new Date(a.createdAt || a.updatedAt).getTime();
+      const bDate = new Date(b.createdAt || b.updatedAt).getTime();
+      return sortOrder === 'date-new' ? bDate - aDate : aDate - bDate;
+    });
 
     return filtered;
-  }, [projects, priorityFilter, sortByPriority]);
+  }, [projects, priorityFilter, sortOrder]);
 
   const renderProject = ({ item }: { item: ProjectWithCounts }) => {
     const currentPriority = item.priority || 'NEBULA';
@@ -446,17 +443,22 @@ export default function ProjectsScreen() {
             {/* Sort Options */}
             <View style={styles.filterSection}>
               <Text style={styles.filterSectionTitle}>Sort</Text>
-              <TouchableOpacity
-                style={[
-                  styles.filterOption,
-                  sortByPriority && styles.filterOptionActive
-                ]}
-                onPress={() => setSortByPriority(!sortByPriority)}
-              >
-                <Text style={styles.filterOptionLabel}>
-                  {sortByPriority ? '✓ Highest Priority First' : 'Sort by Priority'}
-                </Text>
-              </TouchableOpacity>
+              {[
+                { value: 'date-new', label: 'Newest First', emoji: '🆕' },
+                { value: 'date-old', label: 'Oldest First', emoji: '⏰' },
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.filterOption,
+                    sortOrder === option.value && styles.filterOptionActive
+                  ]}
+                  onPress={() => setSortOrder(option.value as 'date-new' | 'date-old')}
+                >
+                  <Text style={styles.filterOptionEmoji}>{option.emoji}</Text>
+                  <Text style={styles.filterOptionLabel}>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
             <TouchableOpacity
