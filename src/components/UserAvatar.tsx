@@ -140,17 +140,23 @@ export default function UserAvatar({ size = 40, showEditButton = false }: UserAv
   };
 
   const getInitials = () => {
+    console.log('getInitials called - user:', JSON.stringify(user));
     if (user?.name) {
-      return user.name
+      const initials = user.name
         .split(' ')
         .map(n => n[0])
         .join('')
         .toUpperCase()
         .slice(0, 2);
+      console.log('getInitials: Using name, initials =', initials);
+      return initials;
     }
     if (user?.email) {
-      return user.email[0].toUpperCase();
+      const initial = user.email[0].toUpperCase();
+      console.log('getInitials: Using email, initial =', initial);
+      return initial;
     }
+    console.log('getInitials: No name or email, returning ?');
     return '?';
   };
 
@@ -172,31 +178,30 @@ export default function UserAvatar({ size = 40, showEditButton = false }: UserAv
         }}
         activeOpacity={0.7}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: user?.avatar ? 'transparent' : '#8B5CF6',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
       >
-        <View style={[styles.avatarContainer, { width: size, height: size }]}>
-          {user?.avatar ? (
-            <Image
-              source={{ uri: user.avatar }}
-              style={[styles.avatar, { width: size, height: size }]}
-            />
-          ) : (
-            <View
-              style={[
-                styles.initialsContainer,
-                { width: size, height: size, borderRadius: size / 2 },
-              ]}
-            >
-              <Text style={[styles.initials, { fontSize: size * 0.4 }]}>
-                {getInitials()}
-              </Text>
-            </View>
-          )}
-          {showEditButton && (
-            <View style={styles.editBadge}>
-              <Camera color={colors.text.primary} size={12} />
-            </View>
-          )}
-        </View>
+        {user?.avatar ? (
+          <Image
+            source={{ uri: user.avatar }}
+            style={{ width: size, height: size, borderRadius: size / 2 }}
+          />
+        ) : (
+          <Text style={{ fontSize: size * 0.4, color: '#FFFFFF', fontWeight: 'bold' }}>
+            {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+          </Text>
+        )}
+        {showEditButton && (
+          <View style={styles.editBadge}>
+            <Camera color={colors.text.primary} size={12} />
+          </View>
+        )}
       </TouchableOpacity>
 
       {/* Avatar Modal - Instagram/Facebook Style */}
@@ -328,6 +333,9 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'visible', // Ensure content is visible on Android
+    zIndex: 100, // Ensure avatar renders above other elements
+    elevation: 10, // Android shadow/elevation for z-ordering
   },
   avatar: {
     borderRadius: 999,
