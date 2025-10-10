@@ -7,26 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0BF9F7F3493C45D1B6689C31 /* libPods-CosmicBoard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 39C03C2458E9D2EAC05FDBB4 /* libPods-CosmicBoard.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		14D716F45601DFCFBFA01E79 /* libPods-CosmicBoard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E6E295375BE58EFF057F3C70 /* libPods-CosmicBoard.a */; };
+		1D3637580D4E52D3484D7276 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E4BE6680A7F7D85E73BADF /* ExpoModulesProvider.swift */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		7F4C6649553B49C10A35B1A6 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 041F9622100BDAAC29807E78 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		CC1497B335D8083B01F8C8CF /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 592CB79023D3DE13026C2DC5 /* ExpoModulesProvider.swift */; };
+		C6F949A96F88439C148105AA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CC954564D2CC7A08EDA84A8D /* PrivacyInfo.xcprivacy */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		041F9622100BDAAC29807E78 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = CosmicBoard/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* CosmicBoard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CosmicBoard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = CosmicBoard/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = CosmicBoard/Info.plist; sourceTree = "<group>"; };
-		39C03C2458E9D2EAC05FDBB4 /* libPods-CosmicBoard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CosmicBoard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		592CB79023D3DE13026C2DC5 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-CosmicBoard/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		91E506BA206DEF6ECBDF0BE6 /* Pods-CosmicBoard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CosmicBoard.debug.xcconfig"; path = "Target Support Files/Pods-CosmicBoard/Pods-CosmicBoard.debug.xcconfig"; sourceTree = "<group>"; };
+		206B80F62F5252839F5ACBF2 /* Pods-CosmicBoard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CosmicBoard.debug.xcconfig"; path = "Target Support Files/Pods-CosmicBoard/Pods-CosmicBoard.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = CosmicBoard/SplashScreen.storyboard; sourceTree = "<group>"; };
+		ACE3E964963D4029430DFE63 /* Pods-CosmicBoard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CosmicBoard.release.xcconfig"; path = "Target Support Files/Pods-CosmicBoard/Pods-CosmicBoard.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D00711A8300CE2656F19DD46 /* Pods-CosmicBoard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CosmicBoard.release.xcconfig"; path = "Target Support Files/Pods-CosmicBoard/Pods-CosmicBoard.release.xcconfig"; sourceTree = "<group>"; };
+		CC954564D2CC7A08EDA84A8D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = CosmicBoard/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		E1E4BE6680A7F7D85E73BADF /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-CosmicBoard/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		E6E295375BE58EFF057F3C70 /* libPods-CosmicBoard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CosmicBoard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = CosmicBoard/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* CosmicBoard-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "CosmicBoard-Bridging-Header.h"; path = "CosmicBoard/CosmicBoard-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -37,7 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0BF9F7F3493C45D1B6689C31 /* libPods-CosmicBoard.a in Frameworks */,
+				14D716F45601DFCFBFA01E79 /* libPods-CosmicBoard.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,36 +53,28 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				041F9622100BDAAC29807E78 /* PrivacyInfo.xcprivacy */,
+				CC954564D2CC7A08EDA84A8D /* PrivacyInfo.xcprivacy */,
 			);
 			name = CosmicBoard;
-			sourceTree = "<group>";
-		};
-		188E4E58B957F498A4188EA6 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				91E506BA206DEF6ECBDF0BE6 /* Pods-CosmicBoard.debug.xcconfig */,
-				D00711A8300CE2656F19DD46 /* Pods-CosmicBoard.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				39C03C2458E9D2EAC05FDBB4 /* libPods-CosmicBoard.a */,
+				E6E295375BE58EFF057F3C70 /* libPods-CosmicBoard.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		6AC295D484DB065753E8B5A5 /* CosmicBoard */ = {
+		315128A0D819C8591B3AC292 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				592CB79023D3DE13026C2DC5 /* ExpoModulesProvider.swift */,
+				206B80F62F5252839F5ACBF2 /* Pods-CosmicBoard.debug.xcconfig */,
+				ACE3E964963D4029430DFE63 /* Pods-CosmicBoard.release.xcconfig */,
 			);
-			name = CosmicBoard;
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -99,8 +91,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				188E4E58B957F498A4188EA6 /* Pods */,
-				DF17AFEF88FB956BBF13CDE2 /* ExpoModulesProviders */,
+				315128A0D819C8591B3AC292 /* Pods */,
+				B503893938D5314F34B621E2 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -115,6 +107,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		986E00D97778CF7349D5F857 /* CosmicBoard */ = {
+			isa = PBXGroup;
+			children = (
+				E1E4BE6680A7F7D85E73BADF /* ExpoModulesProvider.swift */,
+			);
+			name = CosmicBoard;
+			sourceTree = "<group>";
+		};
+		B503893938D5314F34B621E2 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				986E00D97778CF7349D5F857 /* CosmicBoard */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -122,14 +130,6 @@
 			);
 			name = Supporting;
 			path = CosmicBoard/Supporting;
-			sourceTree = "<group>";
-		};
-		DF17AFEF88FB956BBF13CDE2 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				6AC295D484DB065753E8B5A5 /* CosmicBoard */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "CosmicBoard" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				3F9F6BC97D80ACD2DC0A83DD /* [Expo] Configure project */,
+				9D12694A468D07E469A2DBB9 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				BEB1206E64890E4F24124475 /* [CP] Embed Pods Frameworks */,
+				A6767ABF906339FCB8BD8646 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -196,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				7F4C6649553B49C10A35B1A6 /* PrivacyInfo.xcprivacy in Resources */,
+				C6F949A96F88439C148105AA /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -240,25 +240,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		3F9F6BC97D80ACD2DC0A83DD /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-CosmicBoard/expo-configure-project.sh\"\n";
-		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -295,7 +276,26 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CosmicBoard/Pods-CosmicBoard-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		BEB1206E64890E4F24124475 /* [CP] Embed Pods Frameworks */ = {
+		9D12694A468D07E469A2DBB9 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-CosmicBoard/expo-configure-project.sh\"\n";
+		};
+		A6767ABF906339FCB8BD8646 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -321,7 +321,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				CC1497B335D8083B01F8C8CF /* ExpoModulesProvider.swift in Sources */,
+				1D3637580D4E52D3484D7276 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -330,7 +330,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 91E506BA206DEF6ECBDF0BE6 /* Pods-CosmicBoard.debug.xcconfig */;
+			baseConfigurationReference = 206B80F62F5252839F5ACBF2 /* Pods-CosmicBoard.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -366,7 +366,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D00711A8300CE2656F19DD46 /* Pods-CosmicBoard.release.xcconfig */;
+			baseConfigurationReference = ACE3E964963D4029430DFE63 /* Pods-CosmicBoard.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
