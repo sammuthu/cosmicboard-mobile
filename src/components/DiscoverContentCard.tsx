@@ -284,15 +284,14 @@ export default function DiscoverContentCard({ item, onPress }: DiscoverContentCa
       case 'PHOTO':
       case 'SCREENSHOT':
       case 'PDF':
+        const MediaIcon = getContentTypeInfo().Icon;
         return (
           <View style={styles.contentSection}>
             {content.thumbnailUrl ? (
               <Image source={{ uri: content.thumbnailUrl }} style={styles.mediaThumbnail} />
             ) : (
               <View style={styles.mediaPlaceholder}>
-                {getContentTypeInfo().Icon && (
-                  <getContentTypeInfo().Icon size={48} color={colors.text.muted} />
-                )}
+                <MediaIcon size={48} color={colors.text.muted} />
               </View>
             )}
             <Text style={styles.mediaName} numberOfLines={2}>
