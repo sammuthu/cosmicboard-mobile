@@ -3,13 +3,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Home, Search, Settings, FolderOpen, FileText, Code, Image } from 'lucide-react-native';
+import { Home, Search, Settings, FolderOpen, FileText, Code, Image, Globe } from 'lucide-react-native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import UserAvatar from '../components/UserAvatar';
 
 // Import screens (we'll create these next)
 import ProjectsScreen from '../screens/ProjectsScreen';
 import ProjectDetailScreen from '../screens/ProjectDetailScreen';
+import DiscoverScreen from '../screens/DiscoverScreen';
 import SearchScreen from '../screens/SearchScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
@@ -27,6 +28,7 @@ export type RootStackParamList = {
 };
 
 export type MainTabParamList = {
+  Discover: undefined;
   Projects: undefined;
   Search: undefined;
   Media: undefined;
@@ -57,6 +59,17 @@ function MainTabs() {
         headerTintColor: colors.text.primary,
       }}
     >
+      <Tab.Screen
+        name="Discover"
+        component={DiscoverScreen}
+        options={{
+          tabBarLabel: 'Discover',
+          tabBarIcon: ({ color, size }) => (
+            <Globe color={color} size={size} />
+          ),
+          headerShown: false, // Hide header since DiscoverScreen has its own
+        }}
+      />
       <Tab.Screen
         name="Projects"
         component={ProjectsScreen}
