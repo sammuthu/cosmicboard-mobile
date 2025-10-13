@@ -103,6 +103,12 @@ class ApiService {
   }
 
   async refreshAuthToken() {
+    // In dev mode, tokens don't expire - skip refresh
+    if (__DEV__) {
+      console.log('🔑 Dev mode: Skipping token refresh (using hardcoded token)');
+      return this.token;
+    }
+
     if (!this.refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -111,10 +117,10 @@ class ApiService {
       const response = await axios.post(`${API_URL}/auth/refresh`, {
         refreshToken: this.refreshToken,
       });
-      
+
       const { token } = response.data;
       this.token = token;
-      
+
       // Update stored token
       const credentials = await Keychain.getInternetCredentials('cosmicboard');
       if (credentials) {
@@ -124,7 +130,7 @@ class ApiService {
           token
         );
       }
-      
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       return token;
     } catch (error) {
