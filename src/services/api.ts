@@ -16,13 +16,11 @@ class ApiService {
     // Use platform-specific dev tokens in development
     if (__DEV__) {
       // iOS: nmuthu@gmail.com
-      // Android: sammuthu@me.com
-      this.token = Platform.OS === 'ios'
-        ? 'acf42bf1db704dd18e3c64e20f1e73da2f19f8c23cf3bdb7e23c9c2a3c5f1e2d'  // nmuthu@gmail.com
-        : '0bfe06952e506cd153cd8e4307e6caa1a4341fd1fe24ab428f5f9cc2fd6de2a2'; // sammuthu@me.com
+      // Android: nmuthu@gmail.com (using same token temporarily until we set up sammuthu@me.com)
+      this.token = 'acf42bf1db704dd18e3c64e20f1e73da2f19f8c23cf3bdb7e23c9c2a3c5f1e2d';  // nmuthu@gmail.com
 
       axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
-      console.log(`🔑 Dev mode: Using ${Platform.OS === 'ios' ? 'nmuthu@gmail.com (iOS)' : 'sammuthu@me.com (Android)'} token`);
+      console.log(`🔑 Dev mode: Using nmuthu@gmail.com token for ${Platform.OS}`);
     }
   }
 
