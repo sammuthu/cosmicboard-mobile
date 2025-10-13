@@ -86,17 +86,35 @@ export default function DiscoverScreen() {
   );
 
   /**
-   * Render footer (loading indicator when fetching more)
+   * Render footer (loading indicator when fetching more, or end message)
    */
   const renderFooter = () => {
-    if (!isLoadingMore) return null;
+    // Show loading indicator when fetching more
+    if (isLoadingMore) {
+      return (
+        <View style={styles.footerLoader}>
+          <ActivityIndicator size="small" color={colors.cosmic.purple} />
+          <Text style={styles.footerText}>Loading more...</Text>
+        </View>
+      );
+    }
 
-    return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={colors.cosmic.purple} />
-        <Text style={styles.footerText}>Loading more...</Text>
-      </View>
-    );
+    // Show end message only when:
+    // 1. There are items
+    // 2. No more items to load
+    // 3. Have enough items to make scrolling meaningful (more than 3)
+    if (items.length > 3 && !hasMore) {
+      return (
+        <View style={styles.endMessage}>
+          <Text style={styles.endText}>✨ You've reached the end</Text>
+          <TouchableOpacity onPress={scrollToTop} style={styles.scrollTopButton}>
+            <Text style={styles.scrollTopText}>Scroll to top</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   /**
@@ -137,21 +155,6 @@ export default function DiscoverScreen() {
     );
   };
 
-  /**
-   * Render end of feed message
-   */
-  const renderEndMessage = () => {
-    if (items.length === 0 || hasMore) return null;
-
-    return (
-      <View style={styles.endMessage}>
-        <Text style={styles.endText}>✨ You've reached the end</Text>
-        <TouchableOpacity onPress={scrollToTop} style={styles.scrollTopButton}>
-          <Text style={styles.scrollTopText}>Scroll to top</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
 
   // Use theme gradient colors
   const gradientColors = themeColors
@@ -208,9 +211,6 @@ export default function DiscoverScreen() {
           ListFooterComponent={renderFooter}
           showsVerticalScrollIndicator={false}
         />
-
-        {/* End Message */}
-        {renderEndMessage()}
       </SafeAreaView>
     </LinearGradient>
   );
