@@ -6,9 +6,9 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity,
-  SafeAreaView
+  TouchableOpacity
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Globe, RefreshCw, AlertCircle } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -167,7 +167,7 @@ export default function DiscoverScreen() {
       colors={gradientColors as readonly [string, string, ...string[]]}
       style={styles.container}
     >
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
