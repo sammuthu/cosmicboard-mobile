@@ -13,10 +13,16 @@ class ApiService {
   private refreshToken: string | null = null;
 
   constructor() {
-    // Use dev token in development
+    // Use platform-specific dev tokens in development
     if (__DEV__) {
-      this.token = 'acf42bf1db704dd18e3c64e20f1e73da2f19f8c23cf3bdb7e23c9c2a3c5f1e2d';
+      // iOS: nmuthu@gmail.com
+      // Android: sammuthu@me.com
+      this.token = Platform.OS === 'ios'
+        ? 'acf42bf1db704dd18e3c64e20f1e73da2f19f8c23cf3bdb7e23c9c2a3c5f1e2d'  // nmuthu@gmail.com
+        : '0bfe06952e506cd153cd8e4307e6caa1a4341fd1fe24ab428f5f9cc2fd6de2a2'; // sammuthu@me.com
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+      console.log(`🔑 Dev mode: Using ${Platform.OS === 'ios' ? 'nmuthu@gmail.com (iOS)' : 'sammuthu@me.com (Android)'} token`);
     }
   }
 
@@ -155,6 +161,7 @@ class ApiService {
   async updateProject(id: string, data: Partial<{
     name: string;
     description: string;
+    visibility: 'PUBLIC' | 'CONTACTS' | 'PRIVATE';
   }>) {
     const response = await axios.put(`${API_URL}/projects/${id}`, data);
     return response.data;
@@ -425,6 +432,18 @@ class ApiService {
 
   async deleteThemeCustomization(id: string) {
     await axios.delete(`${API_URL}/themes/user/customizations/${id}`);
+  }
+
+  // Discover Feed
+  async getDiscoverFeed(params?: { limit?: number; cursor?: string }) {
+    const response = await axios.get(`${API_URL}/discover`, { params });
+    return response.data;
+  }
+
+  // Project Visibility
+  async updateProjectVisibility(projectId: string, visibility: 'PUBLIC' | 'CONTACTS' | 'PRIVATE') {
+    const response = await axios.put(`${API_URL}/projects/${projectId}`, { visibility });
+    return response.data;
   }
 }
 
