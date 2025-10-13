@@ -15,14 +15,14 @@ class ApiService {
   constructor() {
     // Use platform-specific dev tokens in development
     if (__DEV__) {
-      // iOS: nmuthu@gmail.com
-      // Android: sammuthu@me.com
+      // iOS: nmuthu@gmail.com (90-day token)
+      // Android: sammuthu@me.com (90-day token)
       this.token = Platform.OS === 'ios'
-        ? '26e73e915deb882011bb16ff9fec49d3cd8dcce2c525a09bd18fefa9eedfa076'  // nmuthu@gmail.com (refreshed)
-        : '27eb1a24abf6c89fc5ad1d60c0cb1038ef5e69a4bc64f6eb7dd5f81019ee25a2'; // sammuthu@me.com (refreshed)
+        ? '03c053eada3696970cb3c7df426b27a7081c11bc8ba721e5902b74b19e66b0b7'  // nmuthu@gmail.com (90-day expiry)
+        : 'ec0beada0489d36dc5d87f018fb2513c9a29fb418e3c7ee4894845a00ab6f220'; // sammuthu@me.com (90-day expiry)
 
       axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
-      console.log(`🔑 Dev mode: Using ${Platform.OS === 'ios' ? 'nmuthu@gmail.com (iOS)' : 'sammuthu@me.com (Android)'} token`);
+      console.log(`🔑 Dev mode: Using ${Platform.OS === 'ios' ? 'nmuthu@gmail.com (iOS)' : 'sammuthu@me.com (Android)'} token with 90-day expiry`);
     }
   }
 
