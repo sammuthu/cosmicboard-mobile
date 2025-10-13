@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Globe, RefreshCw, AlertCircle } from 'lucide-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useThemeColors } from '../hooks/useThemeColors';
 import { useTheme } from '../contexts/ThemeContext';
 import { useDiscoverFeed, DiscoverFeedItem } from '../hooks/useDiscoverFeed';
@@ -29,6 +30,7 @@ import UserAvatar from '../components/UserAvatar';
  * - Auto-pagination on scroll
  */
 export default function DiscoverScreen() {
+  const navigation = useNavigation();
   const colors = useThemeColors();
   const { colors: themeColors } = useTheme();
   const styles = createStyles(colors);
@@ -74,8 +76,11 @@ export default function DiscoverScreen() {
     <DiscoverContentCard
       item={item}
       onPress={() => {
-        // TODO: Navigate to content detail based on type
-        console.log(`Tapped ${item.contentType}: ${item.contentId}`);
+        // Navigate to content detail based on type
+        if (item.contentType === 'PROJECT') {
+          navigation.navigate('ProjectDetail' as never, { projectId: item.contentId } as never);
+        }
+        // TODO: Add navigation for other content types (TASK, NOTE, EVENT, etc.)
       }}
     />
   );
